@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+{% include 'header.html' %}
+<body>
+<script>
+</script>
+<style>
+    .ui.selection.dropdown {
+        min-width: 100%;
+    }
+
+    .ui.menu {
+        margin-top: 0px;
+    }
+
+</style>
+{% include 'menu.html' %}
+
+<div class="ui grid">
+    <div class="seven wide column">
+        <h2>Profile page</h2>
+        <form class="ui form">
+            <div class="field">
+                <label>Email:</label>
+                <div class="field">
+                    <input type="email" name="email" placeholder="iljashaposhnikov@gmail.com" readonly value="{{ escape(user_data['email'])}}">
+                </div>
+            </div>
+            <div class="field">
+                <label>First name:</label>
+                <div class="field">
+                    <input type="text" name="email" placeholder="Ivan" readonly value="{{ escape(user_data['fname']) }}">
+                </div>
+            </div>
+            <div class="field">
+                <label>Second name:</label>
+                <div class="field">
+                    <input type="text" name="email" placeholder="Ivanov" value="{{ escape(user_data['lname'])}}" readonly>
+                </div>
+            </div>
+            <div class="field">
+                <label>Company:</label>
+                <div class="field">
+                    <input type="text" name="email" placeholder="Intel" value="{{ escape(user_data['company']) }}">
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="one wide column"></div>
+    <div class="seven wide column">
+
+    </div>
+</div>
+
+{% include 'footer.html' %}
+</body>
+</html>

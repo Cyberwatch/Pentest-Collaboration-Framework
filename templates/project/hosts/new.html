@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+{% include 'header.html' %}
+<body>
+<div id="segment_id">
+    {% include 'menu.html' %}
+    <script>
+        $(function () {
+            $('.message .close')
+                .on('click', function () {
+                    $(this)
+                        .closest('.message')
+                        .transition('fade')
+                    ;
+                });
+        });
+    </script>
+    <div class="ui grid">
+        <div class="ui column" style="width: 75px; padding-top: 50px;">
+            {% include 'project/sidebar.html' %}
+        </div>
+        <div class="ui column" style="width: calc(100% - 75px)">
+            <h1 class="ui dividing header">Add new host</h1>
+            <div class="ui container" style="width: 320px; float: left;">
+                <form class="ui form" method="post" action="/project/{{ current_project['id'] }}/hosts/new_host">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="ui field">
+                        <div class="ui labeled input">
+                            <div class="ui label" style="width: 125px;">
+                                <i class="desktop icon"></i>Host:
+                            </div>
+                            <input type="text" name="ip" placeholder="8.8.8.8" required>
+                        </div>
+                    </div>
+                    <div class="ui field">
+                        <div class="ui labeled input">
+                            <div class="ui label">
+                                <i class="sticky note outline icon"></i>Description:
+                            </div>
+                            <textarea rows="2" name="description" placeholder="Host description"></textarea>
+                        </div>
+                    </div>
+                    <button class="ui button blue"><i class="plus icon"></i>Add</button>
+                </form>
+                {% if errors is defined and errors %}
+                    <div class="ui error message visible">
+                        <i class="close icon"></i>
+                        <div class="header">
+                            There were some errors with host
+                        </div>
+                        <ul class="list">
+                            {% for error in errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% include 'footer.html' %}
+    </div>
+</div>
+</body>
+</html>
