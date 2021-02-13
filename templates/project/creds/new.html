@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+{% include 'header.html' %}
+<body>
+<div id="segment_id">
+    {% include 'menu.html' %}
+    <script>
+        $(function () {
+            $('.message .close')
+                .on('click', function () {
+                    $(this)
+                        .closest('.message')
+                        .transition('fade')
+                    ;
+                });
+
+            $('#hosts_list').dropdown({
+                action: 'nothing',
+                fullTextSearch: "exact",
+                sortSelect: true
+            });
+
+            $('#hostnames_list').dropdown({
+                action: 'nothing',
+                fullTextSearch: "exact",
+                sortSelect: true
+            });
+
+            $('#hash_list').dropdown({
+                fullTextSearch: "exact",
+            });
+
+            $('#check_wordlist').dropdown({});
+            $('.ui.checkbox').checkbox();
+        });
+    </script>
+    <div class="ui grid">
+        <div class="ui column" style="width: 75px; padding-top: 50px;">
+            {% include 'project/sidebar.html' %}
+        </div>
+        <div class="ui column" style="width: calc(100% - 75px)">
+            <h1 class="ui dividing header">Add new credentials</h1>
+            <form class="ui form" method="post" action="/project/{{current_project['id']}}/credentials/new_creds"
+                  style="margin-top: 15px; width: 100%">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="ui grid" style="width: 100%">
+                    <div class="eight wide column">
+                        <h3 style="margin-top:0px;">Credentials info:</h3>
+                        <div class="ui container" style="width: 90%; float: left;">
+                            <div class="ui field">
+                                <div class="ui labeled input">
+                                    <div class="ui label" style="width: 173px;">
+                                        <i class="at icon"></i>Login / Email:
+                                    </div>
+                                    <input type="text" name="login" placeholder="admin" required>
+                                </div>
+                            </div>
+                            <div class="ui field">
+                                <div class="ui labeled input">
+                                    <div class="ui label" style="width: 173px;">
+                                        <i class="hashtag icon"></i>Hash:
+                                    </div>
+                                    <input type="text" name="password_hash" placeholder="21232f297a57a5a743894a0e4a801fc3">
+                                </div>
+                            </div>
+                            <div class="ui field">
+                                <div class="ui labeled input">
+                                    <div class="ui label" style="width: 173px;">
+                                        <i class="hashtag icon"></i>Hash type:
+                                    </div>
+                                    <div class="ui fluid selection search dropdown" id="hash_list">
+                                        <input type="hidden" name="hash_type"
+                                               value="">
+                                        <i class="dropdown icon"></i>
+                                        <div class="default text">Select hash type</div>
+                                        <div class="menu">
+                                            <div class="item" data-value="">None</div>
+                                            <div class="item" data-value="md5_hex">MD5(hex)</div>
+                                            <div class="item" data-value="sha1_hex">SHA1(hex)</div>
+                                            <div class="item" data-value="sha256_hex">SHA256(hex)</div>
+                                            <div class="item" data-value="sha512_hex">SHA512(hex)</div>
+                                            <div class="item" data-value="md5_crypt_unix">MD5-Crypt Unix $1$...$...</div>
+                                            <div class="item" data-value="des_crypt_unix">DES-Crypt Unix (old short)</div>
+                                            <div class="item" data-value="sha256_crypt_unix">SHA256-Crypt Unix $5$...$...</div>
+                                            <div class="item" data-value="sha512_crypt_unix">SHA512-Crypt Unix $6$...$...</div>
+                                            <div class="item" data-value="ntlm_hex">NTLM or NT(hex)</div>
+                                            <div class="item" data-value="lm_hex">LM(hex)</div>
+                                            <div class="item" data-value="rabbitmq_md5">RabbitMQ MD5(base64)</div>
+                                            <div class="item" data-value="Other">Other</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ui field">
+                                <div class="ui labeled input">
+                                    <div class="ui label" style="width: 173px;">
+                                        <i class="check circle icon"></i>Check wordlist:
+                                    </div>
+                                    <div class="ui fluid selection dropdown" id="check_wordlist">
+                                        <input type="hidden" name="check_pwd"
+                                               value="">
+                                        <i class="dropdown icon"></i>
+                                        <div class="default text">Check hash in wordlist</div>
+                                        <div class="menu">
+                                            <div class="item" data-value="">-</div>
+                                            <div class="item" data-value="top10k">Top-10k passwords (2019)</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="ui field">
+                                <div class="ui labeled input">
+                                    <div class="ui label">
+                                        <i class="key icon"></i>Cleartext password:
+                                    </div>
+                                    <input type="text" name="cleartext_password" placeholder="Qwerty1234">
+                                </div>
+                            </div>
+                            <div class="ui field">
+                                <div class="ui labeled input">
+                                    <div class="ui label" style="width: 173px;">
+                                        <i class="sticky note outline icon"></i>Comment:
+                                    </div>
+                                    <input type="text" name="comment" placeholder="Credentials description">
+                                </div>
+                            </div>
+                            <div class="ui field">
+                                <div class="ui labeled input">
+                                    <div class="ui label" style="width: 173px;">
+                                        <i class="bullhorn icon"></i>Source:
+                                    </div>
+                                    <input name="info_source" placeholder="Where did u find this credentials">
+                                </div>
+                            </div>
+                            <button class="ui button blue"><i class="plus icon"></i>Add</button>
+                            {% if errors is defined and errors %}
+                                <div class="ui error message visible">
+                                    <i class="close icon"></i>
+                                    <div class="header">
+                                        There were some errors with credentials
+                                    </div>
+                                    <ul class="list">
+                                        {% for error in errors %}
+                                            <li>{{ error }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% endif %}
+
+                            {% if errors is defined and not errors %}
+                                <div class="ui success message visible">
+                                    <i class="close icon"></i>
+                                    <div class="header">
+                                        Credentials were added successfully!
+                                    </div>
+                                </div>
+                            {% endif %}
+
+                        </div>
+                    </div>
+                    <div class="eight wide column">
+                        <h3 style="margin-top:0px; margin-bottom:0px">Hosts:</h3>
+                        <div class="ui grid">
+                            <div class="eight wide column">
+                                <div class="ui field">
+                                    <div class="ui dropdown" id="hosts_list" style="width: 100%;">
+                                        <div class="menu transition visible" style="width: 90%;">
+                                            <div class="ui icon search input">
+                                                <i class="search icon"></i>
+                                                <input type="text" name="Search" placeholder="Search&hellip;">
+                                            </div>
+                                            <div class="scrolling menu" style="height:270px;">
+                                                {% set ports = db.select_project_pair_host_port(current_project['id']) %}
+                                                {% for port in ports %}
+                                                    <div class="ui item checkbox" data-value="item1">
+                                                        <input type="checkbox" name="ip_port-{{ loop.index }}"
+                                                               value="{{ port['port_id'] }}">
+                                                        <label>{{ escape(port['ip']) }}{% if port['port'] !=0 %}:{{ port['port'] }}{% if not port['is_tcp'] %} (udp){% endif %}{% endif %}</label>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="eight wide column">
+                                <div class="ui field">
+                                    <div class="ui dropdown" id="hostnames_list" style="width: 100%;">
+                                        <div class="menu transition visible" style="width: 90%;">
+                                            <div class="ui icon search input">
+                                                <i class="search icon"></i>
+                                                <input type="text" name="Search" placeholder="Search&hellip;">
+                                            </div>
+                                            <div class="scrolling menu" style="height:270px;">
+                                                {% set ports = db.select_project_pair_hostname_port(current_project['id']) %}
+                                                {% for port in ports %}
+                                                    <div class="ui item checkbox" data-value="item1">
+                                                        <input type="checkbox" name="host_port-{{ loop.index }}"
+                                                               value="{{ port['port_id'] }}:{{ port['hostname_id'] }}">
+                                                        <label>{{ escape(port['hostname']) }}{% if port['port'] !=0 %}:{{ port['port'] }}{% if not port['is_tcp'] %} (udp){% endif %}{% endif %}</label>
+                                                    </div>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+
+                </div>
+            </form>
+        </div>
+        {% include 'footer.html' %}
+    </div>
+</div>
+</body>
+</html>
