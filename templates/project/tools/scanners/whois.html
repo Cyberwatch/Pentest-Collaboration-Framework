@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+{% include 'header.html' %}
+<body>
+<div id="segment_id">
+    {% include 'menu.html' %}
+    <div class="ui grid">
+        <div class="ui column" style="width: 75px; padding-top: 50px;">
+            {% include 'project/sidebar.html' %}
+        </div>
+        <script>
+            $(document).ready(function () {
+                $('.message .close')
+                    .on('click', function () {
+                        $(this)
+                            .closest('.message')
+                            .transition('fade')
+                        ;
+                    });
+
+                $('#hosts_list').dropdown({
+                    action: 'nothing',
+                    fullTextSearch: "exact",
+                    sortSelect: true
+                });
+
+                $('#networks_list').dropdown({
+                    action: 'nothing',
+                    fullTextSearch: "exact",
+                    sortSelect: true
+                });
+
+                $('.ui.checkbox').checkbox();
+
+                const checkbox_hosts = document.getElementById('all_hostnames_checkbox')
+
+                checkbox_hosts.addEventListener('change', (event) => {
+                    elements = document.querySelectorAll('[id=hostname_checkbox]');
+                    for (var i = 0; i < elements.length; i++) {
+                        elements[i].checked = event.currentTarget.checked;
+                    }
+                })
+
+            });
+
+
+        </script>
+        <div class="ui column" style="width: calc(100% - 75px)">
+            <h1 class="ui dividing header">Whois</h1>
+            <div class="ui container" style="width: 100%">
+                <div class="ui relaxed divided items">
+                    <div class="item">
+                        <div class="ui small image">
+                            {% if external_img %}
+                                <img src="https://i.ibb.co/zH66ZFG/python.png">
+                            {% else %}
+                                <img src="/static/images/python.png">
+                            {% endif %}
+                        </div>
+                        <div class="content">
+                            <a class="header">Whois</a>
+                            <div class="meta">
+                                <a>Recon tool</a>
+                            </div>
+                            <div class="description">
+                                python-whois is a Python package focused on retrieving and parsing whois data for domains.
+                            </div>
+                            <div class="extra">
+                                <a href="https://pypi.org/project/python-whois/" class="ui right floated purple button" target="_blank" rel="noopener noreferrer">
+                                    Official site
+                                    <i class="right chevron icon"></i>
+                                </a>
+                                <div class="ui label">Opensource</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ui divider"></div>
+                <h2 class="ui header">Scan options</h2>
+                <form class="ui form" enctype="multipart/form-data" method="post" action="/project/{{ current_project['id'] }}/tools/whois/">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="three fields">
+                        <div class="ui field">
+                            <div class="ui field">
+                                <label>Hostname:</label>
+                                <input type="text" name="hostname" placeholder="google.com" style="margin-top:15px;">
+                            </div>
+                            <button style="margin-top:20px" type="submit" class="ui button blue"><i class="plus icon"></i>Submit</button>
+                            {% if errors is defined and errors %}
+                                <div class="ui error message visible">
+                                    <i class="close icon"></i>
+                                    <div class="header">
+                                        There were some errors with hostname
+                                    </div>
+                                    <ul class="list">
+                                        {% for error in errors %}
+                                            <li>{{ error }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                            {% elif errors is defined and not errors %}
+                                <div class="ui success message visible">
+                                    <i class="close icon"></i>
+                                    <div class="header">
+                                        Successfully uploaded!
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="ui field">
+                            <label>or select hostnames:</label>
+                            <div class="ui dropdown" id="hostnames_list" style="width: 100%">
+                                <div class="menu transition visible" style="width: 90%">
+                                    <div class="ui icon search input" style="width:calc(100% - 20px)">
+                                        <i class="search icon"></i>
+                                        <input type="text" name="Search" placeholder="Search&hellip;">
+                                    </div>
+                                    <div class="scrolling menu" style="height:270px;">
+                                        <div class="ui item checkbox" style="margin-top:0px">
+                                            <input type="checkbox" id="all_hostnames_checkbox">
+                                            <label>Select All</label>
+                                        </div>
+                                        {% set hostnames = db.select_project_hostnames(current_project['id']) %}
+                                        {% for hostname in hostnames %}
+                                            <div class="ui item checkbox" style="margin-top:0px">
+                                                <input type="checkbox" name="hostnames" value="{{ escape(hostname['hostname']) }}" id="hostname_checkbox">
+                                                <label>{{ escape(hostname['hostname']) }}</label>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="ui field">
+                        </div>
+
+                    </div>
+
+                </form>
+            </div>
+        </div>
+        {% include 'footer.html' %}
+    </div>
+</div>
+</body>
+</html>
