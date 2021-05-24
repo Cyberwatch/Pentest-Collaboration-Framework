@@ -1,0 +1,2 @@
+{% set log_dict = db.get_log_by_team_id(current_team['id']) %}{% for row in log_dict %}{% set current_project = db.select_projects(row['project']) %}{{ format_date(row['date'],'%d-%m-%Y %H:%M:%S') }} - Project: {% if current_project -%}{{ escape(current_project[0]['name']) }}{% endif %} User:{{ escape(db.select_user_by_id(row['user_id'])[0]['email']) }} -- {{ escape(row['description']) }}
+{% endfor %}
