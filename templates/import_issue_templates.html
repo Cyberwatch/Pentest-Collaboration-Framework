@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+{% include 'header.html' %}
+<body>
+<div id="segment_id">
+    {% include 'menu.html' %}
+    <script>
+        $(function () {
+            $('.ui.dropdown.selection').dropdown({});
+            $('.message .close')
+                .on('click', function () {
+                    $(this)
+                        .closest('.message')
+                        .transition('fade')
+                    ;
+                });
+
+        });
+    </script>
+    <style>
+        .ui.dropdown .menu {
+            min-width: 100%;
+        }
+
+        .ui.dropdown.dropdown .menu > .input {
+            min-width: 80%;
+        }
+    </style>
+    <form class="ui form" method="post" action="import_issue_templates" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="ui grid">
+            <div class="ui column" style="width: 75px; padding-top: 50px;">
+            </div>
+            <div class="ui column" style="width: calc(100% - 75px);">
+                <h1 class="ui dividing header">Import issue templates from file</h1>
+
+                <div class="ui field" style="float: left; margin-bottom: 15px; max-width: 400px;">
+                    <div class="ui labeled input">
+                        <div class="ui label" style="width: 128px;">
+                            <i class="users icon"></i>Owner:
+                        </div>
+                        <div class="ui fluid selection dropdown">
+                            <input type="hidden" required name="team_id" value="{{ escape(request.args.get("team_id")) }}">
+                            <i class="dropdown icon"></i>
+                            <div class="default text">Select status</div>
+                            <div class="menu">
+                                <div class="item" data-value="" default>Personal account</div>
+                                {% set teams = db.select_user_teams(session['id']) %}
+                                {% for team in teams %}
+                                    <div class="item" data-value="{{ team['id'] }}">Team: {{ escape(team['name']) }}</div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ui field" style="max-width: 500px;">
+                    <div class="ui labeled input">
+                        <div class="ui label" style="width: 128px;">
+                            <i class="file icon"></i>JSON-files:
+                        </div>
+                        <input type="file" multiple name="json_files" required accept=".json">
+                    </div>
+                </div>
+
+                <div class="ui field" style="max-width: 500px;">
+                    <div class="ui labeled input">
+                        <div class="ui label">
+                            <i class="hashtag icon"></i>Name prefix:
+                        </div>
+                        <input type="text" value="" name="prefix" placeholder="imported_">
+                    </div>
+                </div>
+                <div class="ui field">
+                    <button class="ui blue button" type="submit">
+                        <i class="upload icon"></i>Upload
+                    </button>
+                </div>
+
+                {% if errors is defined and errors %}
+                    <div class="ui error message visible">
+                        <i class="close icon"></i>
+                        <div class="header">
+                            There were some errors with issue
+                        </div>
+                        <ul class="list">
+                            {% for error in errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+
+            </div>
+        </div>
+    </form>
+</div>
+{% include 'footer.html' %}
+</body>
+</html>
