@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>{{ escape(current_note['name']) }}</title>
+    <link href="/static/images/favicon.ico" rel="shortcut icon" type="image/x-icon">
+    {% if external_css %}
+        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.min.css">
+        <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/se/dt-1.10.23/rg-1.1.2/datatables.min.css">
+        <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css">
+    {% else %}
+        {% if not one_file_css %}
+            <link rel="stylesheet" type="text/css" href="/static/css/semantic.min.css">
+            <link rel="stylesheet" type="text/css" href="/static/css/datatables.min.css">
+            <link rel="stylesheet" type="text/css" href="/static/css/highlight.css">
+        {% else %}
+            <link rel="stylesheet" type="text/css" href="/static/css/all.css">
+        {% endif %}
+    {% endif %}
+
+    {% if external_js %}
+        <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/fomantic-ui@2.8.7/dist/semantic.min.js"></script>
+        <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery.address/1.6/jquery.address.min.js"></script>
+        <script type="text/javascript" src="https://cdn.datatables.net/v/se/dt-1.10.23/rg-1.1.2/datatables.min.js"></script>
+        <script src="https://semantic-ui.com/javascript/library/highlight.min.js"></script>
+    {% else %}
+        {% if not one_file_js %}
+            <script type="text/javascript" src="/static/js/jquery.min.js"></script>
+            <script type="text/javascript" src="/static/js/jquery.address.min.js"></script>
+            <script type="text/javascript" src="/static/js/semantic.min.js"></script>
+            <script type="text/javascript" src="/static/js/datatables.min.js"></script>
+            <script type="text/javascript" src="/static/js/highlight.min.js"></script>
+        {% else %}
+            <script type="text/javascript" src="/static/js/all.js"></script>
+        {% endif %}
+    {% endif %}
+    {% if external_js %}
+        <script src="https://cdn.quilljs.com/1.2.6/quill.min.js"></script>
+    {% else %}
+        <script src="/static/js/quill.min.js"></script>
+    {% endif %}
+    {% if external_css %}
+        <link href="https://cdn.quilljs.com/1.2.6/quill.snow.css" rel="stylesheet">
+    {% else %}
+        <link href="/static/css/quill.snow.css" rel="stylesheet">
+    {% endif %}
+</head>
+<body>
+
+<textarea type="hidden" id="textarea" style="display: none">{{ current_note['text'] }}</textarea>
+<div style="float: left; width: 100%;">
+    <div id="editor" style="width: 100%; overflow: auto;"></div>
+</div>
+
+<script>
+    $(document)
+        .ready(function () {
+            var quill = new Quill('#editor', {
+                placeholder: 'Compose an epic...',
+                theme: 'snow',
+                height: '500px',
+                readOnly: true,
+                "modules": {
+                    "toolbar": false
+                }
+            });
+
+            text_val = $('#textarea')[0].value;
+            delta = quill.clipboard.convert(text_val);
+
+            quill.setContents(delta, 'silent')
+        });
+</script>
+<style>
+    .ql-container.ql-snow {
+        border: none;
+    }
+</style>
+
+</body>
+</html>
