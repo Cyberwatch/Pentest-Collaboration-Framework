@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Terminal=true
+Name=PCF
+Icon=utilities-terminal
+Exec=gnome-terminal -e "bash -c 'python3 app.py;$SHELL'"
+Categories=Application;
