@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+{% include 'header.html' %}
+<body>
+<div id="segment_id">
+    {% include 'menu.html' %}
+    {% if external_js %}
+        <script src="https://cvssjs.github.io/cvss.js"></script>
+    {% else %}
+        <script src="/static/js/cvss.js"></script>
+    {% endif %}
+    {% if external_css %}
+        <link rel="stylesheet" type="text/css" media="all" href="https://cvssjs.github.io/cvss.css">
+    {% else %}
+        <link rel="stylesheet" type="text/css" media="all" href="/static/css/cvss.css">
+    {% endif %}
+    <script>
+        $(function () {
+            $('.message .close')
+                .on('click', function () {
+                    $(this)
+                        .closest('.message')
+                        .transition('fade')
+                    ;
+                });
+
+
+            $('.ui.dropdown.selection').dropdown({});
+
+
+            $('.menu .item').tab({
+                history: true,
+                historyType: 'hash'
+            });
+            $('.menu .item').tab({
+                history: true,
+                historyType: 'hash'
+            });
+
+            $('.ui.dropdown.selection').dropdown({});
+        });
+    </script>
+    <style>
+        .ui.dropdown .menu {
+            min-width: 100%;
+        }
+
+        .ui.dropdown.dropdown .menu > .input {
+            min-width: 80%;
+        }
+    </style>
+    <div class="ui grid">
+        <div class="ui column" style="width: 75px; padding-top: 50px;">
+            {% include 'project/sidebar.html' %}
+        </div>
+
+        <script>
+            fields_array = ['#v_name',
+                '#v_descr',
+                '#v_fix',
+                '#v_url',
+                '#v_cve',
+                '#v_param'];
+            fields_vals = [];
+
+
+            var first = 1;
+
+            function update_fields() {
+                template_vars = document.querySelectorAll('[id=template_var]');
+
+                for (var x = 0; x < fields_array.length; x++) {
+                    obj = $(fields_array[x])[0];
+
+                    if (first === 1) {
+                        if (x === (fields_array.length - 1)) {
+                            first = 0;
+                        }
+                        fields_vals.push(obj.value.toString());
+                    }
+
+                    obj_value = fields_vals[x];
+
+                    for (var i = 0; i < template_vars.length; i++) {
+                        variable_obj = template_vars[i];
+                        variable_name = variable_obj.querySelectorAll('[id=template_name]')[0].value;
+                        variable_name = '__' + variable_name + '__';
+                        variable_value = variable_obj.querySelectorAll('[id=template_value]')[0].value.toString();
+
+                        obj_value = obj_value.replace(variable_name, variable_value);
+                    }
+
+                    obj.value = obj_value;
+
+                }
+
+                obj = $('#v_name')[0];
+                $('#issue_header')[0].innerText = 'Issue: ' + obj.value;
+            }
+
+            $(function () {
+                // add additional fields
+                add_fields = document.querySelectorAll('.additional_field');
+                for (var x = 0; x < add_fields.length; x++) {
+                    fields_array.push('#' + add_fields[x].id);
+                }
+
+                update_fields();
+
+
+                document.querySelectorAll('[id=template_value]').forEach(item => {
+                    item.addEventListener('input', event => {
+                        update_fields();
+                    })
+                })
+
+            });
+        </script>
+
+        <div class="ui column" style="width: calc(100% - 75px)">
+            <h1 class="ui dividing header">Edit issue with template: {{ escape(current_template['tpl_name']) }}</h1>
+            <div class="ui grid" style="width: 95%; padding-left: 15px; padding-top: 15px;">
+                <div class="five wide column">
+                    <form class="ui form" enctype="multipart/form-data" method="post" action="/project/{{ current_project['id'] }}/issue/{{ current_issue['id'] }}/template/{{ current_template['id'] }}/"
+                          style="margin-top: 15px; width: 100%" novalidate>
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+
+                        <h3 class="ui header">You need to fill this variables:</h3>
+                        {% set variables = json_unpack(current_template['variables']) %}
+                        <div style="overflow: auto; height: 400px; width: 450px;">
+                            {% for variable_name in variables %}
+                                <div class="ui field" style="width: 90%" id="template_var">
+                                    <h4>{{ escape(variable_name) }} ({{ escape(variables[variable_name]['type']) }})</h4>
+                                    <input type="hidden" name="variable_name" id="template_name" value="{{ escape(variable_name) }}">
+                                    <input type="hidden" name="variable_type" value="{{ escape(variables[variable_name]['type']) }}">
+                                    <div class="field">
+                                        <div class="ui input" style="max-width: 400px;">
+                                            <input id="template_value" type="{% if variables[variable_name]['type'] == 'text' %}text{% else %}number{% endif %}" placeholder="Default value" onchange="update_fields();" name="variable_value"
+                                                   value="{% if variables[variable_name]['type'] == 'text' %}{{ escape(variables[variable_name]['value']) }}{% else %}{{ variables[variable_name]['value'] | int }}{% endif %}">
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <button type="submit" class="ui blue button" style="margin-top: 10px;">
+                            <i class="plus icon"></i> Create
+                        </button>
+                        <a type="button" href="/project/{{ current_project['id'] }}/issue/{{ current_issue['id'] }}/" class="ui orange button" style="margin-top: 10px;">
+                            <i class="share icon"></i> Return to issue
+                        </a>
+                    </form>
+                </div>
+                <div class="eleven wide column" style="border: 4px dashed green;">
+                    <div class="ui top attached tabular menu" style="margin-bottom: 10px">
+                        <a class="item active" data-tab="new_issue">
+                            New issue
+                        </a>
+                        <a class="item" data-tab="old_issue">
+                            Old issue
+                        </a>
+                    </div>
+                    <div class="ui tab active" data-tab="new_issue">
+                        <h1 class="ui dividing header" id="issue_header">Issue: {{ escape(current_template['name']) }}</h1>
+                        <div class="ui top attached tabular menu" style="margin-bottom: 10px">
+                            <a class="item active" data-tab="info">
+                                Issue information
+                            </a>
+                            <a class="item" data-tab="fields">
+                                Additional fields
+                            </a>
+                        </div>
+                        <div class="ui tab active" data-tab="info">
+                            <form class="ui form" style="margin-top: 15px; width: 100%">
+                                <div class="ui grid" style="width: 100%">
+                                    <div class="eight wide column">
+                                        <div class="ui container" style="width: 90%; float: left;">
+                                            <div class="ui field">
+                                                <div class="ui labeled input">
+                                                    <div class="ui label" style="width: 125px;">
+                                                        <i class="at icon"></i>Name:
+                                                    </div>
+                                                    <input type="text" name="name" id="v_name" placeholder="SQL injection.." readonly value="{{ escape(current_template['name']) }}">
+                                                </div>
+                                            </div>
+                                            <div class="ui field">
+                                                <div class="ui labeled input">
+                                                    <div class="ui label" style="width: 125px;">
+                                                        <i class="sticky note outline icon"></i>Description:
+                                                    </div>
+                                                    <textarea rows="8" name="description" id="v_descr" placeholder="Vulnerability description" readonly>{{ escape(current_template['description']) }}</textarea>
+                                                </div>
+                                            </div>
+                                            <div class="ui field">
+                                                <div class="ui labeled input">
+                                                    <div class="ui label" style="width: 125px;">
+                                                        <i class="medkit icon"></i>Fix:
+                                                    </div>
+                                                    <textarea rows="2" name="fix"
+                                                              placeholder="To fix this vulnerability you need..." id="v_fix" readonly>{{ escape(current_template['fix']) }}</textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="eight wide column">
+                                        <div class="ui field">
+                                            <div class="ui labeled input">
+                                                <div class="ui label">
+                                                    <i class="folder open icon"></i>URL path/service:
+                                                </div>
+                                                <input type="text" id="v_url" name="url" placeholder="/admin/"
+                                                       value="{{ escape(current_template['url_path']) }}" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="ui field">
+                                            <div class="ui labeled input">
+                                                <div class="ui label" style="width: 160px;">
+                                                    <i class="hashtag icon"></i>CVSS:
+                                                </div>
+                                                <input type="number" name="cvss" step="0.01" min="0" max="10" placeholder="10.0"
+                                                       value="{{ escape(current_template['cvss']) }}" readonly>
+                                                <button disabled type="button" class="ui button blue">
+                                                    <i class="ui calculator icon"></i>CVSS calculator
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div id="cvss_hidden" style="display: none">
+                                            <div class="ui divider"></div>
+                                            <div id="cvssboard">
+                                            </div>
+                                            <div class="ui divider"></div>
+                                        </div>
+                                        <div class="ui field">
+                                            <div class="ui labeled input">
+                                                <div class="ui label" style="width: 160px;">
+                                                    <i class="hashtag icon"></i>CVE:
+                                                </div>
+                                                <input type="text" name="cve" id="v_cve" placeholder="2020-1337"
+                                                       value="{{ escape(current_template['cve']) }}" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="ui field">
+                                            <div class="ui labeled input">
+                                                <div class="ui label" style="width: 160px;">
+                                                    <i class="hashtag icon"></i>CWE:
+                                                </div>
+                                                <input type="number" name="cwe" placeholder="123"
+                                                       value="{{ escape(current_template['cwe']) }}" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="ui field">
+                                            <div class="ui labeled input">
+                                                <div class="ui label" style="width: 160px;">
+                                                    <i class="question circle icon"></i>Status:
+                                                </div>
+                                                <div class="ui fluid selection dropdown disabled" id="services_list">
+                                                    <input type="hidden" name="status" required
+                                                           value="{{ escape(current_template['status']) }}" readonly>
+                                                    <i class="dropdown icon"></i>
+                                                    <div class="default text">Select status</div>
+                                                    <div class="menu">
+                                                        <div class="item" data-value="PoC creation">PoC creation</div>
+                                                        <div class="item" data-value="PoC available">PoC available</div>
+                                                        <div class="item" data-value="Confirmed">Confirmed</div>
+                                                        <div class="item" data-value="Wasn't Confirmed">Wasn't Confirmed</div>
+                                                        <div class="item" data-value="Pending...">Pending...</div>
+                                                        <div class="item" data-value="Need to check">Need to check</div>
+                                                        <div class="item" data-value="Need to recheck">Need to recheck</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="ui field">
+                                            <div class="ui labeled input">
+                                                <div class="ui label" style="width: 160px;">
+                                                    <i class="exclamation triangle icon"></i>Criticality:
+                                                </div>
+                                                <div class="ui fluid selection dropdown disabled" id="services_list">
+                                                    <input type="hidden" name="criticality" required value="-1" readonly>
+                                                    <i class="dropdown icon"></i>
+                                                    <div class="default text">Select criticality</div>
+                                                    <div class="menu">
+                                                        <div class="item" data-value="-1">use CVSS criticality</div>
+                                                        <div class="item" data-value="0"><i class="warning circle blue icon"></i>Information
+                                                            (cvss=0.0)
+                                                        </div>
+                                                        <div class="item" data-value="2"><i class="warning circle green icon"></i>Low
+                                                            (cvss=2.0)
+                                                        </div>
+                                                        <div class="item" data-value="5"><i class="warning circle yellow icon"></i>Medium
+                                                            (cvss=5.0)
+                                                        </div>
+                                                        <div class="item" data-value="8"><i class="warning circle orange icon"></i>High
+                                                            (cvss=8.0)
+                                                        </div>
+                                                        <div class="item" data-value="9.5"><i class="warning circle red icon"></i>Critical
+                                                            (cvss=9.5)
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="ui field">
+                                            <div class="ui labeled input">
+                                                <div class="ui label" style="width: 160px;">
+                                                    <i class="desktop icon"></i>Parameter:
+                                                </div>
+                                                <input type="text" id="v_param" name="param" placeholder="(GET) id=123"
+                                                       value="{{ escape(current_template['param']) }}" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="ui field">
+                                            <div class="ui labeled input">
+                                                <div class="ui label" style="width: 160px;">
+                                                    <i class="desktop icon"></i>Type:
+                                                </div>
+                                                <div class="ui fluid selection dropdown disabled" id="services_list">
+                                                    <input type="hidden" name="issue_type" required
+                                                           value="{{ escape(current_template['type']) }}" readonly>
+                                                    <i class="dropdown icon"></i>
+                                                    <div class="default text">Select type</div>
+                                                    <div class="menu">
+                                                        <div class="item" data-value="custom">Custom</div>
+                                                        <div class="item" data-value="web">Web</div>
+                                                        <div class="item" data-value="credentials">Credentials</div>
+                                                        <div class="item" data-value="service">Service</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+
+                        <div class="ui tab" data-tab="fields">
+                            {% set fields = json_unpack(current_template['fields']) %}
+                            <script>
+                                $(document).ready(function () {
+                                    $('#new_field_dropdown').dropdown({});
+                                });
+                            </script>
+                            <div class="ui grid">
+                                <div class="two column row">
+                                    <div class="ui column">
+                                        <h2 class="ui dividing header">Text fields</h2>
+                                        <form class="ui form">
+                                            <div id="fields_list">
+                                                {% for field_name in fields %}
+                                                    {% if fields[field_name]['type'] != 'file' %}
+                                                        <div>
+                                                            <h4>{{ escape(field_name) }} ({{ fields[field_name]['type'] }})</h4>
+                                                            <input type="hidden" name="additional_field_name" value="{{ escape(field_name) }}">
+                                                            <input type="hidden" name="additional_field_type" value="{{ fields[field_name]['type'] }}">
+                                                            <div class="ui two fields">
+                                                                <div class="field">
+                                                                    <div class="ui input">
+                                                                        {% if fields[field_name]['type'] == 'text' %}
+                                                                            <input type="text" id="additional_field-{{ escape(field_name) }}" class="additional_field" readonly value="{{ escape(fields[field_name]['value']) }}" placeholder="Field value" name="additional_field_value">
+                                                                        {% elif fields[field_name]['type'] == 'float' %}
+                                                                            <input type="number" readonly step="any" value="{{ fields[field_name]['value'] | float }}" placeholder="Field value" name="additional_field_value">
+                                                                        {% else %}
+                                                                            <input type="number" readonly value="{{ fields[field_name]['value'] | int }}" placeholder="Field value" name="additional_field_value">
+                                                                        {% endif %}
+                                                                    </div>
+                                                                </div>
+                                                                <div class="field">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+
+                                            <div class="divider"></div>
+                                        </form>
+                                    </div>
+
+                                    <div class="ui column">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="ui tab" data-tab="old_issue">
+                        <h1 class="ui dividing header" id="issue_header">Issue: {{ escape(current_issue['name']) }}</h1>
+                        <div class="ui top attached tabular menu" style="margin-bottom: 10px">
+                            <a class="item active" data-tab="info_old">
+                                Issue information
+                            </a>
+                            <a class="item" data-tab="fields_old">
+                                Additional fields
+                            </a>
+                        </div>
+                        <div class="ui tab active" data-tab="info_old">
+                            <form class="ui form" style="margin-top: 15px; width: 100%">
+                                <div class="ui grid" style="width: 100%">
+                                    <div class="eight wide column">
+                                        <div class="ui container" style="width: 90%; float: left;">
+                                            <div class="ui field">
+                                                <div class="ui labeled input">
+                                                    <div class="ui label" style="width: 125px;">
+                                                        <i class="at icon"></i>Name:
+                                                    </div>
+                                                    <input type="text" name="name" placeholder="SQL injection.." readonly value="{{ escape(current_issue['name']) }}">
+                                                </div>
+                                            </div>
+                                            <div class="ui field">
+                                                <div class="ui labeled input">
+                                                    <div class="ui label" style="width: 125px;">
+                                                        <i class="sticky note outline icon"></i>Description:
+                                                    </div>
+                                                    <textarea rows="8" name="description" placeholder="Vulnerability description" readonly>{{ escape(current_issue['description']) }}</textarea>
+                                                </div>
+                                            </div>
+                                            <div class="ui field">
+                                                <div class="ui labeled input">
+                                                    <div class="ui label" style="width: 125px;">
+                                                        <i class="medkit icon"></i>Fix:
+                                                    </div>
+                                                    <textarea rows="2" name="fix"
+                                                              placeholder="To fix this vulnerability you need..." readonly>{{ escape(current_issue['fix']) }}</textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="eight wide column">
+                                        <div class="ui field">
+                                            <div class="ui labeled input">
+                                                <div class="ui label">
+                                                    <i class="folder open icon"></i>URL path/service:
+                                                </div>
+                                                <input type="text" name="url" placeholder="/admin/"
+                                                       value="{{ escape(current_issue['url_path']) }}" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="ui field">
+                                            <div class="ui labeled input">
+                                                <div class="ui label" style="width: 160px;">
+                                                    <i class="hashtag icon"></i>CVSS:
+                                                </div>
+                                                <input type="number" name="cvss" step="0.01" min="0" max="10" placeholder="10.0"
+                                                       value="{{ escape(current_issue['cvss']) }}" readonly>
+                                                <button disabled type="button" class="ui button blue">
+                                                    <i class="ui calculator icon"></i>CVSS calculator
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div id="cvss_hidden" style="display: none">
+                                            <div class="ui divider"></div>
+                                            <div id="cvssboard">
+                                            </div>
+                                            <div class="ui divider"></div>
+                                        </div>
+                                        <div class="ui field">
+                                            <div class="ui labeled input">
+                                                <div class="ui label" style="width: 160px;">
+                                                    <i class="hashtag icon"></i>CVE:
+                                                </div>
+                                                <input type="text" name="cve" placeholder="2020-1337"
+                                                       value="{{ escape(current_issue['cve']) }}" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="ui field">
+                                            <div class="ui labeled input">
+                                                <div class="ui label" style="width: 160px;">
+                                                    <i class="hashtag icon"></i>CWE:
+                                                </div>
+                                                <input type="number" name="cwe" placeholder="123"
+                                                       value="{{ escape(current_issue['cwe']) }}" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="ui field">
+                                            <div class="ui labeled input">
+                                                <div class="ui label" style="width: 160px;">
+                                                    <i class="question circle icon"></i>Status:
+                                                </div>
+                                                <div class="ui fluid selection dropdown disabled" id="services_list">
+                                                    <input type="hidden" name="status" required
+                                                           value="{{ escape(current_issue['status']) }}" readonly>
+                                                    <i class="dropdown icon"></i>
+                                                    <div class="default text">Select status</div>
+                                                    <div class="menu">
+                                                        <div class="item" data-value="PoC creation">PoC creation</div>
+                                                        <div class="item" data-value="PoC available">PoC available</div>
+                                                        <div class="item" data-value="Confirmed">Confirmed</div>
+                                                        <div class="item" data-value="Wasn't Confirmed">Wasn't Confirmed</div>
+                                                        <div class="item" data-value="Pending...">Pending...</div>
+                                                        <div class="item" data-value="Need to check">Need to check</div>
+                                                        <div class="item" data-value="Need to recheck">Need to recheck</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="ui field">
+                                            <div class="ui labeled input">
+                                                <div class="ui label" style="width: 160px;">
+                                                    <i class="exclamation triangle icon"></i>Criticality:
+                                                </div>
+                                                <div class="ui fluid selection dropdown disabled" id="services_list">
+                                                    <input type="hidden" name="criticality" required value="-1" readonly>
+                                                    <i class="dropdown icon"></i>
+                                                    <div class="default text">Select criticality</div>
+                                                    <div class="menu">
+                                                        <div class="item" data-value="-1">use CVSS criticality</div>
+                                                        <div class="item" data-value="0"><i class="warning circle blue icon"></i>Information
+                                                            (cvss=0.0)
+                                                        </div>
+                                                        <div class="item" data-value="2"><i class="warning circle green icon"></i>Low
+                                                            (cvss=2.0)
+                                                        </div>
+                                                        <div class="item" data-value="5"><i class="warning circle yellow icon"></i>Medium
+                                                            (cvss=5.0)
+                                                        </div>
+                                                        <div class="item" data-value="8"><i class="warning circle orange icon"></i>High
+                                                            (cvss=8.0)
+                                                        </div>
+                                                        <div class="item" data-value="9.5"><i class="warning circle red icon"></i>Critical
+                                                            (cvss=9.5)
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="ui field">
+                                            <div class="ui labeled input">
+                                                <div class="ui label" style="width: 160px;">
+                                                    <i class="desktop icon"></i>Parameter:
+                                                </div>
+                                                <input type="text" name="param" placeholder="(GET) id=123"
+                                                       value="{{ escape(current_issue['param']) }}" readonly>
+                                            </div>
+                                        </div>
+                                        <div class="ui field">
+                                            <div class="ui labeled input">
+                                                <div class="ui label" style="width: 160px;">
+                                                    <i class="desktop icon"></i>Type:
+                                                </div>
+                                                <div class="ui fluid selection dropdown disabled" id="services_list">
+                                                    <input type="hidden" name="issue_type" required
+                                                           value="{{ escape(current_issue['type']) }}" readonly>
+                                                    <i class="dropdown icon"></i>
+                                                    <div class="default text">Select type</div>
+                                                    <div class="menu">
+                                                        <div class="item" data-value="custom">Custom</div>
+                                                        <div class="item" data-value="web">Web</div>
+                                                        <div class="item" data-value="credentials">Credentials</div>
+                                                        <div class="item" data-value="service">Service</div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                        <div class="ui tab" data-tab="fields_old">
+                            {% set fields = json_unpack(current_issue['fields']) %}
+                            <script>
+                                $(document).ready(function () {
+                                    $('#new_field_dropdown').dropdown({});
+                                });
+                            </script>
+                            <div class="ui grid">
+                                <div class="two column row">
+                                    <div class="ui column">
+                                        <h2 class="ui dividing header">Text fields</h2>
+                                        <form class="ui form">
+                                            <div>
+                                                {% for field_name in fields %}
+                                                    {% if fields[field_name]['type'] != 'file' %}
+                                                        <div>
+                                                            <h4>{{ escape(field_name) }} ({{ fields[field_name]['type'] }})</h4>
+                                                            <input type="hidden" name="additional_field_name" value="{{ escape(field_name) }}">
+                                                            <input type="hidden" name="additional_field_type" value="{{ fields[field_name]['type'] }}">
+                                                            <div class="ui two fields">
+                                                                <div class="field">
+                                                                    <div class="ui input">
+                                                                        {% if fields[field_name]['type'] == 'text' %}
+                                                                            <input type="text" id="additional_field-{{ escape(field_name) }}" class="additional_field" readonly value="{{ escape(fields[field_name]['value']) }}" placeholder="Field value" name="additional_field_value">
+                                                                        {% elif fields[field_name]['type'] == 'float' %}
+                                                                            <input type="number" readonly step="any" value="{{ fields[field_name]['value'] | float }}" placeholder="Field value" name="additional_field_value">
+                                                                        {% else %}
+                                                                            <input type="number" readonly value="{{ fields[field_name]['value'] | int }}" placeholder="Field value" name="additional_field_value">
+                                                                        {% endif %}
+                                                                    </div>
+                                                                </div>
+                                                                <div class="field">
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+
+                                            <div class="divider"></div>
+                                        </form>
+                                    </div>
+
+                                    <div class="ui column">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% include 'footer.html' %}
+</div>
+</div>
+</body>
+</html>
