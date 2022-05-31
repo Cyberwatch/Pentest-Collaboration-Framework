@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+{% include 'header.html' %}
+<body>
+<div id="segment_id">
+    {% include 'menu.html' %}
+    <div class="ui grid">
+        <div class="ui column" style="width: 75px; padding-top: 50px;">
+            {% include 'project/sidebar.html' %}
+        </div>
+        <script>
+            $(document).ready(function () {
+                $('.message .close')
+                    .on('click', function () {
+                        $(this)
+                            .closest('.message')
+                            .transition('fade')
+                        ;
+                    });
+                $('#hosts_list').dropdown();
+            });
+        </script>
+        <div class="ui column" style="width: calc(100% - 75px)">
+            <h1 class="ui dividing header">Scanvus</h1>
+            <div class="ui container" style="width: 100%">
+                <div class="ui relaxed divided items">
+                    <div class="item">
+                        <div class="ui small image">
+                            {% if external_img %}
+                                <img src="https://i.ibb.co/mTfyrdf/scanvus.png">
+                            {% else %}
+                                <img src="/static/images/scanvus.png">
+                            {% endif %}
+                        </div>
+                        <div class="content">
+                            <a class="header">Scanvus</a>
+                            <div class="meta">
+                                <a>Linux/Docker image scanner</a>
+                            </div>
+                            <div class="description">
+                                Scanvus is a Simple Credentialed Authenticated Network VUlnerability Scanner for Linux hosts and Docker images, which uses the Vulners Linux API under the hood.
+                            </div>
+                            <div class="extra">
+                                <a href="https://github.com/leonov-av/scanvus" class="ui right floated purple button" target="_blank" rel="noopener noreferrer">
+                                    Official site
+                                    <i class="right chevron icon"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ui divider"></div>
+                <h2 class="ui header">Upload reports</h2>
+                <form class="ui form" enctype="multipart/form-data" method="post" action="/project/{{ current_project['id'] }}/tools/scanvus/">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <div class="two fields">
+                        <div class="ui field">
+                            <label>JSON-reports:</label>
+                            <input type="file" name="json_files" placeholder="" multiple accept=".json">
+                        </div>
+                        <div class="ui field">
+                            <label>Select host:</label>
+                            <select class="ui dropdown selection search" name="host_id" id="hosts_list">
+                                <option value="-" selected>New host</option>
+                                {% set hosts = db.select_project_hosts(current_project['id']) %}
+                                {% for current_host in hosts %}
+                                    <option value="{{ current_host['id'] }}">{{ current_host['ip'] }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                    <div class="two fields">
+                        <div class="ui field">
+                            <button style="margin-top:20px" type="submit" class="ui button blue"><i class="plus icon"></i>Submit</button>
+                        </div>
+                        <div class="ui field">
+                            <label>or insert ip:</label>
+                            <input type="text" name="ip" placeholder="8.8.8.8">
+                        </div>
+                    </div>
+                    <div class="two fields">
+                        <div class="ui field">
+                        </div>
+                        <div class="ui field">
+                            <label>New host description:</label>
+                            <input type="text" name="host_description" placeholder="New host description" value="Added from Scanvus">
+                        </div>
+                    </div>
+
+
+                </form>
+                {% if errors is defined and errors %}
+                    <div class="ui error message visible">
+                        <i class="close icon"></i>
+                        <div class="header">
+                            There were some errors with import
+                        </div>
+                        <ul class="list">
+                            {% for error in errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% elif errors is defined and not errors %}
+                    <div class="ui success message visible">
+                        <i class="close icon"></i>
+                        <div class="header">
+                            Successfully uploaded!
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% include 'footer.html' %}
+    </div>
+</div>
+</body>
+</html>
