@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="en">
+{% include 'header.html' %}
+<body>
+<script>
+
+    {% set projects = json_pack(db.select_user_project_names(current_user['id'])) %}
+    {% set teams = json_pack(db.select_user_team_names(current_user['id'])) %}
+    projects_ids = JSON.parse(atob('{{ b64encode(projects.encode('utf-8', 'ignore')).decode('charmap') | safe }}'));
+    teams_ids =JSON.parse( atob('{{ b64encode(teams.encode('utf-8', 'ignore')).decode('charmap') | safe }}'));
+
+    function findGetParameter(parameterName) {
+        var result = '',
+            tmp = [];
+        location.search
+            .substr(1)
+            .split("&")
+            .forEach(function (item) {
+                tmp = item.split("=");
+                if (tmp[0] === parameterName) result = decodeURIComponent(tmp[1]);
+            });
+        return result;
+    }
+
+    function updateURLParameter(url, param, paramVal) {
+        var TheAnchor = null;
+        var newAdditionalURL = "";
+        var tempArray = url.split("?");
+        var baseURL = tempArray[0];
+        var additionalURL = tempArray[1];
+        var temp = "";
+
+        if (additionalURL) {
+            var tmpAnchor = additionalURL.split("#");
+            var TheParams = tmpAnchor[0];
+            TheAnchor = tmpAnchor[1];
+            if (TheAnchor)
+                additionalURL = TheParams;
+
+            tempArray = additionalURL.split("&");
+
+            for (var i = 0; i < tempArray.length; i++) {
+                if (tempArray[i].split('=')[0] != param) {
+                    newAdditionalURL += temp + tempArray[i];
+                    temp = "&";
+                }
+            }
+        } else {
+            var tmpAnchor = baseURL.split("#");
+            var TheParams = tmpAnchor[0];
+            TheAnchor = tmpAnchor[1];
+
+            if (TheParams)
+                baseURL = TheParams;
+        }
+
+        if (TheAnchor)
+            paramVal += "#" + TheAnchor;
+
+        var rows_txt = temp + "" + param + "=" + encodeURI(paramVal);
+        return baseURL + "?" + newAdditionalURL + rows_txt;
+    }
+
+    function escapeHtml(text) {
+        return text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    function hide_all_headers() {
+        $('#div_projects').css("display", "none");
+        $('#div_users').css("display", "none");
+        $('#div_teams').css("display", "none");
+        $('#div_hosts').css("display", "none");
+        $('#div_ports').css("display", "none");
+        $('#div_issues').css("display", "none");
+        $('#div_files').css("display", "none");
+        $('#div_networks').css("display", "none");
+        $('#div_network_paths').css("display", "none");
+        $('#div_sniffers').css("display", "none");
+        $('#div_chats').css("display", "none");
+        $('#div_issue_templates').css("display", "none");
+        $('#div_issue_replace_rules').css("display", "none");
+        $('#div_creds').css("display", "none");
+    }
+    search_in_process=false;
+
+    table_projects = null;
+    table_users = null;
+    table_teams = null;
+    table_hosts = null;
+    table_ports = null;
+    table_issues = null;
+    table_files = null;
+    table_networks = null;
+    table_network_paths = null;
+    table_sniffers = null;
+    table_chats = null;
+    table_issue_templates = null;
+    table_issue_replace_rules = null;
+    table_creds = null;
+
+    function create_tables() {
+        $('#div_projects').css("display", "none");
+        $('#div_users').css("display", "none");
+        $('#div_teams').css("display", "none");
+        $('#div_hosts').css("display", "none");
+        $('#div_ports').css("display", "none");
+        $('#div_issues').css("display", "none");
+        $('#div_files').css("display", "none");
+        $('#div_networks').css("display", "none");
+        $('#div_network_paths').css("display", "none");
+        $('#div_sniffers').css("display", "none");
+        $('#div_chats').css("display", "none");
+        $('#div_issue_templates').css("display", "none");
+        $('#div_issue_replace_rules').css("display", "none");
+        $('#div_creds').css("display", "none");
+
+
+        table_projects = $('#table_projects').DataTable(
+            {
+                "order": [[0, "desc"]],
+                "iDisplayLength": 5,
+                autoWidth: false,
+                aLengthMenu: [
+                    [5, 10, 25, 50, 100, 200, -1],
+                    [5, 10, 25, 50, 100, 200, "All"]
+                ],
+                columns: [
+                    {"width": "10%"},
+                    {"width": "40%"},
+                    {"width": "20%"},
+                    null,
+                    null,
+                    {"width": "60px",
+                    "bSortable": false}
+                ]
+            }
+        );
+        table_users = $('#table_users').DataTable(
+            {
+                "order": [[0, "desc"]],
+                "iDisplayLength": 5,
+                autoWidth: false,
+                aLengthMenu: [
+                    [5, 10, 25, 50, 100, 200, -1],
+                    [5, 10, 25, 50, 100, 200, "All"]
+                ],
+                columns: [
+                    null,
+                    null,
+                    null,
+                    null,
+                    {"width": "60px",
+                    "bSortable": false}
+                ]
+            }
+        );
+        table_teams = $('#table_teams').DataTable(
+            {
+                "order": [[0, "desc"]],
+                "iDisplayLength": 5,
+                autoWidth: false,
+                aLengthMenu: [
+                    [5, 10, 25, 50, 100, 200, -1],
+                    [5, 10, 25, 50, 100, 200, "All"]
+                ],
+                columns: [
+                    null,
+                    null,
+                    {"width": "60px",
+                    "bSortable": false}
+                ]
+            }
+        );
+
+        table_hosts = $('#table_hosts').DataTable(
+            {
+                "order": [[0, "desc"]],
+                "iDisplayLength": 5,
+                autoWidth: false,
+                aLengthMenu: [
+                    [5, 10, 25, 50, 100, 200, -1],
+                    [5, 10, 25, 50, 100, 200, "All"]
+                ],
+                columns: [
+                    {"width": "20%"},
+                    {"width": "20%"},
+                    null,
+                    {"width": "10%"},
+                    {"width": "60px",
+                    "bSortable": false}
+                ]
+            }
+        );
+
+        table_ports = $('#table_ports').DataTable(
+            {
+                "order": [[0, "desc"]],
+                "iDisplayLength": 5,
+                autoWidth: false,
+                aLengthMenu: [
+                    [5, 10, 25, 50, 100, 200, -1],
+                    [5, 10, 25, 50, 100, 200, "All"]
+                ],
+                columns: [
+                    {"width": "20%"},
+                    {"width": "20%"},
+                    null,
+                    {"width": "10%"},
+                    {"width": "20%"},
+                    {"width": "60px", "bSortable": false}
+                ]
+            }
+        );
+
+        table_issues = $('#table_issues').DataTable(
+            {
+                "order": [[0, "desc"]],
+                "iDisplayLength": 5,
+                autoWidth: false,
+                aLengthMenu: [
+                    [5, 10, 25, 50, 100, 200, -1],
+                    [5, 10, 25, 50, 100, 200, "All"]
+                ],
+                columns: [
+                    {"width": "10%"},
+                    {"width": "10%"},
+                    {"width": "20%"},
+                    null,
+                    {"width": "20%"},
+                    null,
+                    {"width": "60px", "bSortable": false}
+                ]
+            }
+        );
+
+        table_files = $('#table_files').DataTable(
+            {
+                "order": [[0, "desc"]],
+                "iDisplayLength": 5,
+                autoWidth: false,
+                aLengthMenu: [
+                    [5, 10, 25, 50, 100, 200, -1],
+                    [5, 10, 25, 50, 100, 200, "All"]
+                ],
+                columns: [
+                    {"width": "20%"},
+                    null,
+                    null,
+                    {"width": "10%"},
+                    {"width": "60px", "bSortable": false}
+                ]
+            }
+        );
+
+        table_networks = $('#table_networks').DataTable(
+            {
+                "order": [[0, "desc"]],
+                "iDisplayLength": 5,
+                autoWidth: false,
+                aLengthMenu: [
+                    [5, 10, 25, 50, 100, 200, -1],
+                    [5, 10, 25, 50, 100, 200, "All"]
+                ],
+                columns: [
+                    {"width": "10%"},
+                    {"width": "10%"},
+                    {"width": "10%"},
+                    {"width": "20%"},
+                    null,
+                    null,
+                    null,
+                    {"width": "60px", "bSortable": false}
+                ]
+            }
+        );
+
+        table_network_paths = $('#table_network_paths').DataTable(
+            {
+                "order": [[0, "desc"]],
+                "iDisplayLength": 5,
+                autoWidth: false,
+                aLengthMenu: [
+                    [5, 10, 25, 50, 100, 200, -1],
+                    [5, 10, 25, 50, 100, 200, "All"]
+                ],
+                columns: [
+                    null,
+                    null,
+                    {"width": "60px", "bSortable": false}
+                ]
+            }
+        );
+
+        table_sniffers = $('#table_sniffers').DataTable(
+            {
+                "order": [[0, "desc"]],
+                "iDisplayLength": 5,
+                autoWidth: false,
+                aLengthMenu: [
+                    [5, 10, 25, 50, 100, 200, -1],
+                    [5, 10, 25, 50, 100, 200, "All"]
+                ],
+                columns: [
+                    {"width": "20%"},
+                    {"width": "20%"},
+                    null,
+                    null,
+                    {"width": "60px", "bSortable": false}
+                ]
+            }
+        );
+
+        table_chats = $('#table_chats').DataTable(
+            {
+                "order": [[0, "desc"]],
+                "iDisplayLength": 5,
+                autoWidth: false,
+                aLengthMenu: [
+                    [5, 10, 25, 50, 100, 200, -1],
+                    [5, 10, 25, 50, 100, 200, "All"]
+                ],
+                columns: [
+                    null,
+                    null,
+                    {"width": "60px", "bSortable": false}
+                ]
+            }
+        );
+
+        table_issue_templates = $('#table_issue_templates').DataTable(
+            {
+                "order": [[0, "desc"]],
+                "iDisplayLength": 5,
+                autoWidth: false,
+                aLengthMenu: [
+                    [5, 10, 25, 50, 100, 200, -1],
+                    [5, 10, 25, 50, 100, 200, "All"]
+                ],
+                columns: [
+                    {"width": "10%"},
+                    null,
+                    null,
+                    {"width": "30%"},
+                    {"width": "30%"},
+                    {"width": "60px", "bSortable": false}
+                ]
+            }
+        );
+
+        table_issue_replace_rules = $('#table_issue_replace_rules').DataTable(
+            {
+                "order": [[0, "desc"]],
+                "iDisplayLength": 5,
+                autoWidth: false,
+                aLengthMenu: [
+                    [5, 10, 25, 50, 100, 200, -1],
+                    [5, 10, 25, 50, 100, 200, "All"]
+                ],
+                columns: [
+                    null,
+                    null,
+                    {"width": "60px", "bSortable": false}
+                ]
+            }
+        );
+
+        table_creds = $('#table_creds').DataTable(
+            {
+                "order": [[0, "desc"]],
+                "iDisplayLength": 5,
+                autoWidth: false,
+                aLengthMenu: [
+                    [5, 10, 25, 50, 100, 200, -1],
+                    [5, 10, 25, 50, 100, 200, "All"]
+                ],
+                columns: [
+                    {"width": "10%"},
+                    {"width": "10%"},
+                    {"width": "20%"},
+                    {"width": "10%"},
+                    {"width": "10%"},
+                    {"width": "20%"},
+                    null,
+                    {"width": "60px", "bSortable": false}
+                ]
+            }
+        );
+    }
+
+    function clear_hide_all_tables() {
+        $('#div_projects').css("display", "none");
+        $('#div_users').css("display", "none");
+        $('#div_teams').css("display", "none");
+        $('#div_hosts').css("display", "none");
+        $('#div_ports').css("display", "none");
+        $('#div_issues').css("display", "none");
+        $('#div_files').css("display", "none");
+        $('#div_networks').css("display", "none");
+        $('#div_network_paths').css("display", "none");
+        $('#div_sniffers').css("display", "none");
+        $('#div_chats').css("display", "none");
+        $('#div_issue_templates').css("display", "none");
+        $('#div_issue_replace_rules').css("display", "none");
+        $('#div_creds').css("display", "none");
+
+        table_projects.clear().draw();
+        table_users.clear().draw();
+        table_teams.clear().draw();
+        table_hosts.clear().draw();
+        table_ports.clear().draw();
+        table_issues.clear().draw();
+        table_files.clear().draw();
+        table_networks.clear().draw();
+        table_network_paths.clear().draw();
+        table_sniffers.clear().draw();
+        table_chats.clear().draw();
+        table_issue_templates.clear().draw();
+        table_issue_replace_rules.clear().draw();
+        table_creds.clear().draw();
+    }
+
+    function search_data() {
+        if (search_in_process === true){
+            $('body').toast({
+                    class: 'error',
+                    position: 'bottom right',
+                    message: 'Search is in progress!'
+                });
+            return;
+        }
+
+        search_in_process = true;
+
+        search = $('#search')[0].value;
+
+        window.history.replaceState('', '', updateURLParameter(window.location.href, "search", search));
+
+        message_object = null
+
+        clear_hide_all_tables();
+
+        $.ajax({
+            url: "/search.json",
+            type: "get",
+            cache: false,
+            data: {
+                search: search
+            },
+            beforeSend: function () {
+                message_object = $('body').toast({
+                    class: 'warning',
+                    //displayTime: 0,
+                    position: 'bottom right',
+                    message: 'Processing request...'
+                });
+            },
+            success: function (data) {
+                // projects
+                if (data['error'] !== undefined) {
+                    $('body').toast({
+                        class: 'error',
+                        position: 'bottom right',
+                        message: data['error']
+                    });
+                    search_in_process = false;
+                    return;
+                }
+
+                $('body').toast({
+                    class: 'success',
+                    position: 'bottom right',
+                    message: 'Completed!'
+                });
+
+                for (var i = 0; i < data['projects'].length; i++) {
+                    $('#div_projects').css("display", "block");
+                    table_projects.row.add([
+                        escapeHtml(data['projects'][i]['project_name'].toString()),
+                        escapeHtml(data['projects'][i]['project_description'].toString()),
+                        escapeHtml(data['projects'][i]['project_scope'].toString()),
+                        escapeHtml(data['projects'][i]['project_folder'].toString()),
+                        escapeHtml(data['projects'][i]['project_report_title'].toString()),
+                        `<a href="/project/PROJECT_ID/" target="_blank" rel="noopener noreferrer"
+                                class="ui vertical animated button blue" tabindex="0">
+                                    <div class="hidden content">Open</div>
+                                    <div class="visible content">
+                                        <i class="share icon"></i>
+                                    </div>
+                         </a>`.replaceAll("PROJECT_ID", data['projects'][i]['project_id'])
+                    ]).draw(false)
+                }
+
+                for (var i = 0; i < data['users'].length; i++) {
+                    $('#div_users').css("display", "block");
+                    table_users.row.add([
+                        escapeHtml(data['users'][i]['user_email']),
+                        escapeHtml(data['users'][i]['user_fname']),
+                        escapeHtml(data['users'][i]['user_lname']),
+                        escapeHtml(data['users'][i]['user_company']),
+                        `<a href="/profile/USER_ID/" target="_blank" rel="noopener noreferrer"
+                                class="ui vertical animated button blue" tabindex="0">
+                                    <div class="hidden content">Open</div>
+                                    <div class="visible content">
+                                        <i class="share icon"></i>
+                                    </div>
+                         </a>`.replaceAll("USER_ID", data['users'][i]['user_id'])
+                    ]).draw(false)
+                }
+
+                for (var i = 0; i < data['teams'].length; i++) {
+                    $('#div_teams').css("display", "block");
+                    table_teams.row.add([
+                        escapeHtml(data['teams'][i]['team_name']),
+                        escapeHtml(data['teams'][i]['team_description']),
+                        `<a href="/team/TEAM_ID/" target="_blank" rel="noopener noreferrer"
+                                class="ui vertical animated button blue" tabindex="0">
+                                    <div class="hidden content">Open</div>
+                                    <div class="visible content">
+                                        <i class="share icon"></i>
+                                    </div>
+                         </a>`.replaceAll("TEAM_ID", data['teams'][i]['team_id'])
+                    ]).draw(false)
+                }
+
+
+                for (var i = 0; i < data['hosts'].length; i++) {
+                    $('#div_hosts').css("display", "block");
+                    table_hosts.row.add([
+                        escapeHtml(projects_ids[data['hosts'][i]['host_project_id']]),
+                        escapeHtml(data['hosts'][i]['host_ip']),
+                        escapeHtml(data['hosts'][i]['host_comment']),
+                        escapeHtml(data['hosts'][i]['host_os']),
+                        `<a href="/project/PROJECT_ID/host/HOST_ID/" target="_blank" rel="noopener noreferrer"
+                                class="ui vertical animated button blue" tabindex="0">
+                                    <div class="hidden content">Open</div>
+                                    <div class="visible content">
+                                        <i class="share icon"></i>
+                                    </div>
+                         </a>`
+                            .replaceAll("PROJECT_ID", data['hosts'][i]['host_project_id'])
+                            .replaceAll("HOST_ID", data['hosts'][i]['host_id'])
+                    ]).draw(false)
+                }
+
+                for (var i = 0; i < data['ports'].length; i++) {
+                    $('#div_ports').css("display", "block");
+                    table_ports.row.add([
+                        escapeHtml(projects_ids[data['ports'][i]['port_project_id']]),
+                        escapeHtml(data['ports'][i]['port_ip']),
+                        escapeHtml(data['ports'][i]['port_is_tcp']===1 ? data['ports'][i]['port_port'] + '/tcp' : data['ports'][i]['port_port'] + '/udp'),
+                        escapeHtml(data['ports'][i]['port_service']),
+                        escapeHtml(data['ports'][i]['port_description']),
+                        `<a href="/project/PROJECT_ID/host/HOST_ID/" target="_blank" rel="noopener noreferrer"
+                                class="ui vertical animated button blue" tabindex="0">
+                                    <div class="hidden content">Open</div>
+                                    <div class="visible content">
+                                        <i class="share icon"></i>
+                                    </div>
+                         </a>`
+                            .replaceAll("PROJECT_ID", data['ports'][i]['port_project_id'])
+                            .replaceAll("HOST_ID", data['ports'][i]['port_host_id'])
+                    ]).draw(false)
+                }
+
+                for (var i = 0; i < data['issues'].length; i++) {
+                    $('#div_issues').css("display", "block");
+                    table_issues.row.add([
+                        escapeHtml(projects_ids[data['issues'][i]['issue_project_id']]),
+                        escapeHtml(data['issues'][i]['issue_name']),
+                        escapeHtml(data['issues'][i]['issue_description'].substring(0,200) + '...'),
+                        escapeHtml(data['issues'][i]['issue_url_path']),
+                        escapeHtml(data['issues'][i]['issue_fix'].substring(0,200) + '...'),
+                        escapeHtml(data['issues'][i]['issue_cve']),
+                        `<a href="/project/PROJECT_ID/issue/ISSUE_ID/" target="_blank" rel="noopener noreferrer"
+                                class="ui vertical animated button blue" tabindex="0">
+                                    <div class="hidden content">Open</div>
+                                    <div class="visible content">
+                                        <i class="share icon"></i>
+                                    </div>
+                         </a>`
+                            .replaceAll("PROJECT_ID", data['issues'][i]['issue_project_id'])
+                            .replaceAll("ISSUE_ID", data['issues'][i]['issue_id'])
+                    ]).draw(false)
+                }
+
+                for (var i = 0; i < data['files'].length; i++) {
+                    $('#div_files').css("display", "block");
+                    table_files.row.add([
+                        escapeHtml(projects_ids[data['files'][i]['file_project_id']]),
+                        escapeHtml(data['files'][i]['file_filename']),
+                        escapeHtml(data['files'][i]['file_description'].substring(0,200) + '...'),
+                        escapeHtml(data['files'][i]['file_type']),
+                        `<a href="/static/files/code/FILE_ID" target="_blank" rel="noopener noreferrer"
+                                class="ui vertical animated button blue" tabindex="0">
+                                    <div class="hidden content">Download</div>
+                                    <div class="visible content">
+                                        <i class="download icon"></i>
+                                    </div>
+                         </a>`
+                            .replaceAll("FILE_ID", data['files'][i]['file_id'])
+                    ]).draw(false)
+                }
+
+                for (var i = 0; i < data['networks'].length; i++) {
+                    $('#div_networks').css("display", "block");
+                    table_networks.row.add([
+                        escapeHtml(projects_ids[data['networks'][i]['network_project_id']]),
+                        escapeHtml(data['networks'][i]['network_name']),
+                        escapeHtml(data['networks'][i]['network_ip'] + '/' + data['networks'][i]['network_mask']),
+                        escapeHtml(data['networks'][i]['network_comment'].substring(0,200) + '...'),
+                        escapeHtml(data['networks'][i]['network_asn'].toString()),
+                        escapeHtml(data['networks'][i]['network_internal_ip']),
+                        escapeHtml(data['networks'][i]['network_cmd']),
+                        `<a href="/project/PROJECT_ID/networks/NETWORK_ID/" target="_blank" rel="noopener noreferrer"
+                                class="ui vertical animated button blue" tabindex="0">
+                                    <div class="hidden content">Open</div>
+                                    <div class="visible content">
+                                        <i class="share icon"></i>
+                                    </div>
+                         </a>`
+                            .replaceAll("PROJECT_ID", data['networks'][i]['network_project_id'])
+                            .replaceAll("NETWORK_ID", data['networks'][i]['network_id'])
+                    ]).draw(false)
+                }
+
+                for (var i = 0; i < data['network_paths'].length; i++) {
+                    $('#div_network_paths').css("display", "block");
+                    table_network_paths.row.add([
+                        escapeHtml(projects_ids[data['network_paths'][i]['network_path_project_id']]),
+                        escapeHtml(data['network_paths'][i]['network_path_description'].substring(0,200) + '...'),
+                        `<a href="/project/PROJECT_ID/networks/" target="_blank" rel="noopener noreferrer"
+                                class="ui vertical animated button blue" tabindex="0">
+                                    <div class="hidden content">Open</div>
+                                    <div class="visible content">
+                                        <i class="share icon"></i>
+                                    </div>
+                         </a>`
+                            .replaceAll("PROJECT_ID", data['network_paths'][i]['network_path_project_id'])
+                    ]).draw(false)
+                }
+
+                for (var i = 0; i < data['chats'].length; i++) {
+                    $('#div_chats').css("display", "block");
+                    table_chats.row.add([
+                        escapeHtml(projects_ids[data['chats'][i]['chat_project_id']]),
+                        escapeHtml(data['chats'][i]['chat_name'].substring(0,200) + '...'),
+                        `<a href="/project/PROJECT_ID/chats/#/chat_CHAT_ID" target="_blank" rel="noopener noreferrer"
+                                class="ui vertical animated button blue" tabindex="0">
+                                    <div class="hidden content">Open</div>
+                                    <div class="visible content">
+                                        <i class="share icon"></i>
+                                    </div>
+                         </a>`
+                            .replaceAll("PROJECT_ID", data['chats'][i]['chat_project_id'])
+                            .replaceAll("CHAT_ID", data['chats'][i]['chat_id'])
+                    ]).draw(false)
+                }
+
+                for (var i = 0; i < data['issue_templates'].length; i++) {
+                    $('#div_issue_templates').css("display", "block");
+                    table_issue_templates.row.add([
+                        escapeHtml(data['issue_templates'][i]['issue_template_team_id'] === '' ? 'Personal': 'Team: ' + teams_ids[data['issue_templates'][i]['issue_template_team_id']]),
+                        escapeHtml(data['issue_templates'][i]['issue_template_name']),
+                        escapeHtml(data['issue_templates'][i]['issue_template_tpl_name']),
+                        escapeHtml(data['issue_templates'][i]['issue_template_description'].substring(0,200) + '...'),
+                        escapeHtml(data['issue_templates'][i]['issue_template_fix'].substring(0,200) + '...'),
+                           `<a href="/issue_template/TEMPLATE_ID/" target="_blank" rel="noopener noreferrer"
+                                class="ui vertical animated button blue" tabindex="0">
+                                    <div class="hidden content">Open</div>
+                                    <div class="visible content">
+                                        <i class="share icon"></i>
+                                    </div>
+                         </a>`
+                            .replaceAll("TEMPLATE_ID", data['issue_templates'][i]['issue_template_id'])
+                    ]).draw(false)
+                }
+
+                for (var i = 0; i < data['issue_rules'].length; i++) {
+                    $('#div_issue_replace_rules').css("display", "block");
+                    table_issue_replace_rules.row.add([
+                        escapeHtml(data['issue_rules'][i]['issue_rule_team_id'] === '' ? 'Personal': 'Team: ' + teams_ids[data['issue_rules'][i]['issue_rule_team_id']]),
+                        escapeHtml(data['issue_rules'][i]['issue_rule_name']),
+                           `<a href="/issue_rule/REPLACE_ID/" target="_blank" rel="noopener noreferrer"
+                                class="ui vertical animated button blue" tabindex="0">
+                                    <div class="hidden content">Open</div>
+                                    <div class="visible content">
+                                        <i class="share icon"></i>
+                                    </div>
+                         </a>`
+                            .replaceAll("REPLACE_ID", data['issue_rules'][i]['issue_rule_id'])
+                    ]).draw(false)
+                }
+
+                for (var i = 0; i < data['creds'].length; i++) {
+                    $('#div_creds').css("display", "block");
+                    table_creds.row.add([
+                        escapeHtml(projects_ids[data['creds'][i]['creds_project_id']]),
+                        escapeHtml(data['creds'][i]['creds_login']),
+                        escapeHtml(data['creds'][i]['creds_hash']),
+                        escapeHtml(data['creds'][i]['creds_type']),
+                        escapeHtml(data['creds'][i]['creds_cleartext']),
+                        escapeHtml(data['creds'][i]['creds_description']),
+                        escapeHtml(data['creds'][i]['creds_source']),
+                           `<a href="/project/PROJECT_ID/credentials/CREDS_ID/" target="_blank" rel="noopener noreferrer"
+                                class="ui vertical animated button blue" tabindex="0">
+                                    <div class="hidden content">Open</div>
+                                    <div class="visible content">
+                                        <i class="share icon"></i>
+                                    </div>
+                         </a>`
+                            .replaceAll("PROJECT_ID", data['creds'][i]['creds_project_id'])
+                            .replaceAll("CREDS_ID", data['creds'][i]['creds_id'])
+                    ]).draw(false)
+                }
+
+
+                search_in_process = false;
+
+            }
+        });
+
+    }
+
+
+    $(function () {
+
+        $('.ui.checkbox').checkbox();
+        create_tables();
+
+        search_val = findGetParameter('search');
+
+        $('#search')[0].value = search_val;
+
+        if (search_val !== '') {
+            window.history.replaceState('', '', updateURLParameter(window.location.href, "search", search_val));
+            search_data();
+        }
+    });
+</script>
+<style>
+    .ui.selection.dropdown {
+        min-width: 100%;
+    }
+
+    .ui.menu {
+        margin-top: 0px;
+    }
+
+
+    tr.odd {
+        background-color: #fffdc2;
+    }
+
+    tr.even {
+        background-color: #c3ffcd;
+    }
+
+    .ui.menu:last-child {
+        margin-bottom: 10px;
+    }
+
+</style>
+{% include 'menu.html' %}
+
+<h2>Global search</h2>
+<div class="ui form">
+    <div class="ui two fields"></div>
+    <div class="ui field">
+        <div class="ui labeled input">
+            <div class="ui label">
+                <i class="search icon"></i>Search:
+            </div>
+            <textarea style="min-height: unset; max-height: unset; height: unset;" type="text" id="search" name="search" placeholder="%string%" minlength="5"></textarea>
+        </div>
+    </div>
+    <div class="ui field">
+        <button class="ui button blue" type="button" onclick="search_data();"><i class="ui icon search"></i>Search</button>
+    </div>
+</div>
+<h2 class="ui header" id="search_lendth">Search results</h2>
+
+<div id="div_projects">
+    <h3 class="ui header divider" id="header_projects" style="padding-top: 30px;padding-bottom: 15px;">Projects</h3>
+
+    <table id="table_projects" class="ui table" style="width:100%">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Scope</th>
+            <th>Folder</th>
+            <th>Report title</th>
+            <th style="width: 60px;">Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
+<div id="div_users">
+    <h3 class="ui header divider" id="header_users" style="padding-top: 30px;padding-bottom: 15px;">Users</h3>
+
+    <table id="table_users" class="ui table" style="width:100%">
+        <thead>
+        <tr>
+            <th>Email</th>
+            <th>First name</th>
+            <th>Last name</th>
+            <th>Company</th>
+            <th style="width: 60px;">Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
+<div id="div_teams">
+    <h3 class="ui header divider" id="header_teams" style="padding-top: 30px;padding-bottom: 15px;">Teams</h3>
+
+    <table id="table_teams" class="ui table" style="width:100%">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Description</th>
+            <th style="width: 60px;">Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
+<div id="div_hosts">
+    <h3 class="ui header divider" id="header_hosts" style="padding-top: 30px;padding-bottom: 15px;">Hosts (with hostnames)</h3>
+
+    <table id="table_hosts" class="ui table" style="width:100%">
+        <thead>
+        <tr>
+            <th>Project</th>
+            <th>IP</th>
+            <th>Comment</th>
+            <th>OS</th>
+            <th style="width: 60px;">Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
+<div id="div_ports">
+    <h3 class="ui header divider" id="header_ports" style="padding-top: 30px;padding-bottom: 15px;">Ports</h3>
+
+    <table id="table_ports" class="ui table" style="width:100%">
+        <thead>
+        <tr>
+            <th>Project</th>
+            <th>IP</th>
+            <th>Port</th>
+            <th>Service</th>
+            <th>Description</th>
+            <th style="width: 60px;">Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
+<div id="div_issues">
+    <h3 class="ui header divider" id="header_issues" style="padding-top: 30px;padding-bottom: 15px;">Issues (with PoCs)</h3>
+
+    <table id="table_issues" class="ui table" style="width:100%">
+        <thead>
+        <tr>
+            <th>Project</th>
+            <th>Name</th>
+            <th>Description</th>
+            <th>Url path</th>
+            <th>Fix</th>
+            <th>CVE</th>
+            <th style="width: 60px;">Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
+<div id="div_creds">
+    <h3 class="ui header divider" id="header_creds" style="padding-top: 30px;padding-bottom: 15px;">Credentials</h3>
+
+    <table id="table_creds" class="ui table" style="width:100%">
+        <thead>
+        <tr>
+            <th>Project</th>
+            <th>Login</th>
+            <th>Hash</th>
+            <th>Hash type</th>
+            <th>Cleartext</th>
+            <th>Description</th>
+            <th>Source</th>
+            <th style="width: 60px;">Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
+<div id="div_files">
+    <h3 class="ui header divider" id="header_files" style="padding-top: 30px;padding-bottom: 15px;">Files</h3>
+
+    <table id="table_files" class="ui table" style="width:100%">
+        <thead>
+        <tr>
+            <th>Project</th>
+            <th>Filename</th>
+            <th>Description</th>
+            <th>Type</th>
+            <th style="width: 60px;">Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
+<div id="div_networks">
+    <h3 class="ui header divider" id="header_networks" style="padding-top: 30px;padding-bottom: 15px;">Networks</h3>
+
+    <table id="table_networks" class="ui table" style="width:100%">
+        <thead>
+        <tr>
+            <th>Project</th>
+            <th>Name</th>
+            <th>Network</th>
+            <th>Description</th>
+            <th>ASN</th>
+            <th>Internal IP</th>
+            <th>Connect CMD</th>
+            <th style="width: 60px;">Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
+<div id="div_network_paths">
+    <h3 class="ui header divider" id="header_network_paths" style="padding-top: 30px;padding-bottom: 15px;">Network paths</h3>
+
+    <table id="table_network_paths" class="ui table" style="width:100%">
+        <thead>
+        <tr>
+            <th>Project</th>
+            <th>Description</th>
+            <th style="width: 60px;">Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
+<div id="div_sniffers">
+    <h3 class="ui header divider" id="header_sniffers" style="padding-top: 30px;padding-bottom: 15px;">HTTP-Sniffers</h3>
+
+    <table id="table_sniffers" class="ui table" style="width:100%">
+        <thead>
+        <tr>
+            <th>Project</th>
+            <th>Name</th>
+            <th>Location</th>
+            <th>Body</th>
+            <th style="width: 60px;">Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
+<div id="div_chats">
+    <h3 class="ui header divider" id="header_chats" style="padding-top: 30px;padding-bottom: 15px;">HTTP-Sniffers</h3>
+
+    <table id="table_chats" class="ui table" style="width:100%">
+        <thead>
+        <tr>
+            <th>Project</th>
+            <th>Name</th>
+            <th style="width: 60px;">Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
+<div id="div_issue_templates">
+    <h3 class="ui header divider" id="header_issue_templates" style="padding-top: 30px;padding-bottom: 15px;">Issue templates</h3>
+
+    <table id="table_issue_templates" class="ui table" style="width:100%">
+        <thead>
+        <tr>
+            <th>Owner</th>
+            <th>Name</th>
+            <th>Issue name</th>
+            <th>Issue description</th>
+            <th>Issue fix</th>
+            <th style="width: 60px;">Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
+<div id="div_issue_replace_rules">
+    <h3 class="ui header divider" id="header_issue_replace_rules" style="padding-top: 30px;padding-bottom: 15px;">Issue replace rules</h3>
+
+    <table id="table_issue_replace_rules" class="ui table" style="width:100%">
+        <thead>
+        <tr>
+            <th>Owner</th>
+            <th>Name</th>
+            <th style="width: 60px;">Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
+</div>
+
+{% include 'footer.html' %}
+</body>
+</html>
