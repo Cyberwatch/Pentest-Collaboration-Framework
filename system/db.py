@@ -2857,7 +2857,7 @@ class Database:
         for port in project_ports:
             port_obj = {
                 'port': port['port'],
-                'is_tcp': bool(port['port']),
+                'is_tcp': bool(port['is_tcp']),
                 'comment': port['description'],
                 'service': port['service']
             }
