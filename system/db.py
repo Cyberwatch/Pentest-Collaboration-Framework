@@ -2825,6 +2825,8 @@ class Database:
         tmp_result['start_date'] = current_project['start_date']
         tmp_result['end_date'] = current_project['end_date']
         tmp_result['folder'] = current_project['folder']
+        tmp_result['scope'] = current_project['scope']
+        tmp_result['type'] = current_project['type']
         tmp_result['report_title'] = current_project['report_title']
         result['project'] = tmp_result
         result['project']['testers'] = {}

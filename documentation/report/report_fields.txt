@@ -9,6 +9,8 @@
 	1.5 folder
 	1.6 report_title
 	1.7 description
+	1.8 scope
+	1.9 type # "pentest"
 		
 2. issues {issue_id}
 	2.1 name
