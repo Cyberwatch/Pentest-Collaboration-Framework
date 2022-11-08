@@ -2215,7 +2215,7 @@ def shodan_page_form(project_id, current_project, current_user):
 
                     # create host
                     full_host_description = "Country: {}\nCity: {}\nOS: {}\nOrganization: {}".format(
-                        country, city, organization)
+                        country, city, os_info, organization)
                     # hostnames = shodan_json["hostnames"]
 
                     host_id = db.select_project_host_by_ip(
@@ -2375,9 +2375,8 @@ def shodan_page_form(project_id, current_project, current_user):
                                                                   network_id[0]['name'])
 
                                 # create host
-                                full_host_description = "Country: {}\nCity: {}\nOS: {}\nOrganization: {}".format(
-                                    country, city, os_info, organization)
-                                # hostnames = shodan_json["hostnames"]
+                                full_host_description = "Country: {}\nCity: {}\nOrganization: {}".format(
+                                    country, city, organization)
 
                                 host_id = db.select_project_host_by_ip(
                                     current_project['id'],
@@ -2386,12 +2385,14 @@ def shodan_page_form(project_id, current_project, current_user):
                                     host_id = host_id[0]['id']
                                     db.update_host_description(host_id,
                                                                full_host_description)
+                                    if os_info:
+                                        db.update_host_os(host_id, os_info)
                                 else:
                                     host_id = db.insert_host(
                                         current_project['id'],
                                         ip,
                                         current_user['id'],
-                                        full_host_description)
+                                        full_host_description,os=os_info)
                                 # add hostnames
                                 for hostname in shodan_json["hostnames"]:
                                     hostname_obj = db.select_ip_hostname(
@@ -4193,7 +4194,7 @@ def wpscan_page_form(project_id, current_project, current_user):
                         for current_issue in version_obj["vulnerabilities"]:
                             issue_name = current_issue["title"]
                             issue_fix = "Upgrade WordPress to version >= " + current_issue["fixed_in"]
-                            issue_cve = ",".join(current_issue["references"]["cve"])
+                            issue_cve = ",".join(current_issue["references"]["cve"]) if "cve" in current_issue["references"] else ""
                             issue_description = "{}\n\nURLs:\n{}\n\nwpvulndb: {}".format(issue_name,
                                                                                          "\n".join([" - " + x for x in current_issue["references"]["url"]]),
                                                                                          ", ".join(current_issue["references"]["wpvulndb"]))
