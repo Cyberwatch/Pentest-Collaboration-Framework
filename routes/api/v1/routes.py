@@ -1845,6 +1845,77 @@ def project_issues_list(args, current_user=None, current_token=None,
     return issues_list
 
 
+@routes.route('/api/v1/project/<uuid:project_id>/issues/search', methods=['POST'])
+@requires_authorization
+@csrf.exempt
+@parser.use_args(search_project_issues, location='json')
+@check_access_token
+@check_project_access
+def project_issues_search(args, current_user=None, current_token=None,
+                        user_id='', project_id=None, current_project=None):
+    """
+    POST /api/v1/project/53ade0ed-ea2d-4812-9676-8bdcf5b7412c/issues/search HTTP/1.1
+    Host: 127.0.0.1:5000
+    Content-Type: application/json
+    Content-Length: 353
+
+    {
+        "access_token": "aed4ce53-c90f-436b-9909-79a2abf7cdaf",
+        "issue_id": "%test%",
+        "name": "%test%",
+        "cvss": "%test%",
+        "url_path": "%test%",
+        "description": "%test%",
+        "cve": "%test%",
+        "cwe": "%test%",
+        "status": "%test%",
+        "fix": "%test%",
+        "param": "%test%",
+        "type": "%test%",
+        "technical": "%test%",
+        "risks": "%test%",
+        "references": "%test%",
+        "intruder": "%test%",
+        "fields": { "nessus_id": "%1234%" }
+    }
+    """
+
+    issues = db.search_project_issues(current_project['id'], args['name'],
+                                      args['cvss'], args['url_path'],
+                                      args['description'], args['cve'],
+                                      args['cwe'], args['status'],
+                                      args['fix'], args['param'],
+                                      args['type'], args['technical'],
+                                      args['risks'], args['user_id'],
+                                      args['references'],
+                                      args['intruder'],
+                                      args['fields'])
+    issues_list = {
+        'issues': []
+    }
+    for issue in issues:
+        issue_obj = {
+            "issue_id": issue["id"],
+            "name": issue["name"],
+            "cvss": issue["cvss"],
+            "url_path": issue["url_path"],
+            "description": issue["description"],
+            "cve": issue["cve"],
+            "cwe": issue["cwe"],
+            "status": issue["status"],
+            "fix": issue["fix"],
+            "param": issue["param"],
+            "type": issue["type"],
+            "services": json.loads(issue['services']),
+            "technical": issue["technical"],
+            "risks": issue["risks"],
+            "references": issue["references"],
+            "intruder": issue["intruder"],
+            "fields": json.loads(issue["fields"])
+        }
+        issues_list['issues'].append(issue_obj)
+    return issues_list
+
 @routes.route('/api/v1/project/<uuid:project_id>/issues/<uuid:issue_id>/info', methods=['POST'])
 @requires_authorization
 @csrf.exempt

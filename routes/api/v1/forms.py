@@ -178,13 +178,14 @@ issue_create_args = {
                             values=fields.List(fields.String(required=False)),
                             required=False,
                             missing={}),
-    "fields": fields.Dict(keys=fields.String(validate=validate.Regexp('^[a-zA-Z0-9]+$', error='Wrong variable name! ^[a-zA-Z0-9]+$')),
-                          values=fields.Dict(
-                              keys=fields.String(validate=validate.OneOf(['type', 'value']), required=True),
-                              values=fields.String(required=False, missing='')
-                          ),
-                          required=False,
-                          missing={}),
+    "fields": fields.Dict(
+        keys=fields.String(validate=validate.Regexp('^[a-zA-Z0-9]+$', error='Wrong variable name! ^[a-zA-Z0-9]+$')),
+        values=fields.Dict(
+            keys=fields.String(validate=validate.OneOf(['type', 'value']), required=True),
+            values=fields.String(required=False, missing='')
+        ),
+        required=False,
+        missing={}),
     "dublicate_find": fields.Boolean(required=False, missing=False)
 }
 
@@ -208,7 +209,8 @@ issue_edit_args = {
                             values=fields.List(fields.String(required=False)),
                             required=False,
                             missing=None),
-    "fields": fields.Dict(keys=fields.String(required=True, validate=validate.Regexp('^[a-zA-Z0-9]+$', error='Wrong variable name! ^[a-zA-Z0-9]+$')),
+    "fields": fields.Dict(keys=fields.String(required=True, validate=validate.Regexp('^[a-zA-Z0-9]+$',
+                                                                                     error='Wrong variable name! ^[a-zA-Z0-9]+$')),
                           values=fields.Dict(
                               keys=fields.String(validate=validate.OneOf(['type', 'value']), required=True),
                               values=fields.String(required=False, missing='')
@@ -246,4 +248,27 @@ use_issue_rules_args = {
     'access_token': fields.UUID(required=True),
     'rule_ids': fields.List(fields.UUID(required=False), required=True),
     'issue_ids': fields.List(fields.UUID(required=False), required=True)
+}
+
+search_project_issues = {
+    'access_token': fields.UUID(required=True),
+    'name': fields.String(required=False, missing='%'),
+    'cvss': fields.String(required=False, missing='%'),
+    'url_path': fields.String(required=False, missing='%'),
+    'description': fields.String(required=False, missing='%'),
+    'cve': fields.String(required=False, missing='%'),
+    'cwe': fields.String(required=False, missing='%'),
+    'status': fields.String(required=False, missing='%'),
+    'fix': fields.String(required=False, missing='%'),
+    'param': fields.String(required=False, missing='%'),
+    'type': fields.String(required=False, missing='%'),
+    'technical': fields.String(required=False, missing='%'),
+    'risks': fields.String(required=False, missing='%'),
+    'user_id': fields.String(required=False, missing='%'),
+    'references': fields.String(required=False, missing='%'),
+    'intruder': fields.String(required=False, missing='%'),
+    'fields': fields.Dict(keys=fields.String(required=True),
+                          values=fields.String(required=False, missing='%'),
+                          required=False,
+                          missing=None)
 }

@@ -319,7 +319,7 @@ We communicate over Telegram. [Click here](https://t.me/PentestCollaborationFram
 * [ ] Database rebuild (objects)
 * [ ] hosts -> interfaces -> ports
 * [ ] hosts -> hostnames
-* [ ] Project file manager
+* [x] Project file manager
 * [ ] Port -> Protocol:Software:Version
 * [ ] User-defined host marks (mark all hosts with open port)
 * [ ] TODO marks button every page
@@ -373,6 +373,7 @@ https://t.me/PentestCollaborationFramework
 https://gitlab.com/invuls/pentest-projects/pcf/-/issues
 * If you use it at work, you can ask @drakylar (Telegram) to add your work icon + link at "Companies" topic at README.md
 * You can create more template examples for PCF and send them to me (@drakylar Telegram), so I will add them to template examples folder at main repository
+* We have not too much Youtube tutorials, so, you can create one :)
 * Also you can create more nmap scripts plugins and also send them to @drakylar. More info here: 
 https://gitlab.com/invuls/pentest-projects/pcf/-/issues/34
 https://gitlab.com/invuls/pentest-projects/pcf/-/blob/master/routes/ui/tools_addons/nmap_scripts/nmap_example.py

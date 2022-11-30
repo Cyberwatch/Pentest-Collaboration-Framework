@@ -2,6 +2,7 @@ import sqlite3
 # from supersqlite import sqlite3
 from system.config_load import config_dict
 from system.crypto_functions import *
+from system.security_functions import sql_to_regexp
 from flask import escape
 import json
 from os import remove, path, environ
@@ -1180,6 +1181,55 @@ class Database:
             (project_id,))
         result = self.return_arr_dict()
         return result
+
+
+    def search_project_issues(self, project_id, name, cvss, url_path, description,
+                              cve, cwe, status, fix, param, type, technical,
+                              risks, user_id, references, intruder, fields):
+        self.execute(
+            '''SELECT * FROM Issues WHERE project_id=? 
+            AND name LIKE ?
+            AND cvss LIKE ?
+            AND url_path LIKE ?
+            AND description LIKE ?
+            AND cve LIKE ?
+            AND cwe LIKE ? 
+            AND status LIKE ?
+            AND fix LIKE ?
+            AND param LIKE ?
+            AND type LIKE ?
+            AND technical LIKE ?
+            AND risks LIKE ?
+            AND user_id LIKE ?
+            AND "references" LIKE ?
+            AND intruder LIKE ?''',
+            (project_id, name, cvss, url_path, description, cve, cwe, status,
+             fix, param, type, technical, risks, user_id, references, intruder))
+        result = self.return_arr_dict()
+
+        if fields is None:
+            return result
+
+        final_result = []
+
+
+        for current_issue in result:
+            add = True
+
+            issue_fields = json.loads(current_issue['fields'])
+
+            for field_name in fields:
+                r_tmp = sql_to_regexp(fields[field_name])
+                if field_name not in issue_fields:
+                    add = False
+                else:
+                    if not re.match(r_tmp, str(issue_fields[field_name]["value"])):
+                        add = False
+
+            if add:
+                final_result.append(current_issue)
+
+        return final_result
 
     def select_port_issues(self, port_id):
         self.execute(

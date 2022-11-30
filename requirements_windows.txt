@@ -1,4 +1,5 @@
 #struct
+lxml==4.9.1
 pyopenssl==22.0.0
 requests==2.26.0
 python-magic-bin==0.4.14

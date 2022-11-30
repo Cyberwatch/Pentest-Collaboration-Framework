@@ -1937,6 +1937,61 @@
         }
       }
     },
+    "/project/{project_id}/issues/search": {
+      "post": {
+        "tags": [
+          "issues"
+        ],
+        "summary": "Search project issues",
+        "description": "Search project issues using SQL LIKE queries\n",
+        "parameters": [
+          {
+            "name": "project_id",
+            "in": "path",
+            "description": "Project ID",
+            "required": true,
+            "style": "simple",
+            "explode": false,
+            "schema": {
+              "type": "string",
+              "example": "ad236cdb-f645-456c-918c-dd8d8085ae95"
+            }
+          }
+        ],
+        "requestBody": {
+          "description": "Search project issues using SQL LIKE queries",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/issues_search_body"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Issues list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/inline_response_200_27"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Wrong parameters",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/project/{project_id}/issues/{issue_id}/info": {
       "post": {
         "tags": [
@@ -4138,6 +4193,125 @@
           }
         },
         "description": "Issue list results"
+      },
+      "projectproject_idissuessearch_fields": {
+        "type": "object",
+        "properties": {
+          "example_field": {
+            "type": "string",
+            "description": "Search by additional field \"example_field\" (% - any string)",
+            "example": "%1234%",
+            "default": "%"
+          }
+        },
+        "description": "Dictionary with additional issue fields",
+        "example": "{\"nessus_id\":\"%1234%\"}"
+      },
+      "issues_search_body": {
+        "required": [
+          "access_token"
+        ],
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "description": "API access token",
+            "example": "ad236cdb-f645-456c-918c-dd8d8085ae95"
+          },
+          "issue_id": {
+            "type": "string",
+            "description": "Search by issue UUID (% - any string, \\_ - any char)",
+            "example": "ad236cdb-____-%",
+            "default": "%"
+          },
+          "name": {
+            "type": "string",
+            "description": "Search by issue name (% - any string, \\_ - any char)",
+            "example": "test-name_-%",
+            "default": "%"
+          },
+          "cvss": {
+            "type": "string",
+            "description": "Search by issue CVSS (% - any string, \\_ - any char)",
+            "example": "9._%",
+            "default": "%"
+          },
+          "url_path": {
+            "type": "string",
+            "description": "Search by issue URL path (% - any string, \\_ - any char)",
+            "example": "/%/admin?_",
+            "default": "%"
+          },
+          "description": {
+            "type": "string",
+            "description": "Search by issue description (% - any string, \\_ - any char)",
+            "example": "%Critical issue number _ %",
+            "default": "%"
+          },
+          "cve": {
+            "type": "string",
+            "description": "Search by issue CVE (% - any string, \\_ - any char)",
+            "example": "CVE-%-202_",
+            "default": "%"
+          },
+          "cwe": {
+            "type": "string",
+            "description": "Search by issue CWE (% - any string, \\_ - any char)",
+            "example": "%1_2",
+            "default": "%"
+          },
+          "status": {
+            "type": "string",
+            "description": "Search by issue status (% - any string, \\_ - any char)",
+            "example": "Need __ %",
+            "default": "%"
+          },
+          "fix": {
+            "type": "string",
+            "description": "Search by issue fix (% - any string, \\_ - any char)",
+            "example": "To fix ____ you need %",
+            "default": "%"
+          },
+          "param": {
+            "type": "string",
+            "description": "Search by issue parameters (% - any string, \\_ - any char)",
+            "example": "(%)admin=_",
+            "default": "%"
+          },
+          "type": {
+            "type": "string",
+            "description": "Search by issue type (% - any string, \\_ - any char)",
+            "example": "%web_%",
+            "default": "%"
+          },
+          "technical": {
+            "type": "string",
+            "description": "Search by issue technical info (% - any string, \\_ - any char)",
+            "example": "To exploit _____ issue you need to %",
+            "default": "%"
+          },
+          "risks": {
+            "type": "string",
+            "description": "Search by issue risks info (% - any string, \\_ - any char)",
+            "example": "Attacker ____ can do %",
+            "default": "%"
+          },
+          "references": {
+            "type": "string",
+            "description": "Search by issue references (% - any string, \\_ - any char)",
+            "example": "%mitre.org%/____",
+            "default": "%"
+          },
+          "intruder": {
+            "type": "string",
+            "description": "Search by issue intruder info (% - any string, \\_ - any char)",
+            "example": "%Intruder _____",
+            "default": "%"
+          },
+          "fields": {
+            "$ref": "#/components/schemas/projectproject_idissuessearch_fields"
+          }
+        }
       },
       "issue_id_info_body": {
         "required": [
