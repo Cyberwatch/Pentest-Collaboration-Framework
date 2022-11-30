@@ -657,7 +657,7 @@ def nessus_page_form(project_id, current_project, current_user):
                         issue_output = ''
                         if hasattr(issue, '__vuln_info') and 'description' in issue.__vuln_info and issue.description.strip('\n') != '':
                             issue_output = issue.description.strip('\n')
-                        elif 'plugin_output' in issue.get_vuln_info:
+                        elif 'plugin_output' in issue.get_vuln_info and issue.get_vuln_info['plugin_output']:
                             issue_output = issue.get_vuln_info['plugin_output'].strip('\n')
                         try:
                             issue_info = issue.synopsis
