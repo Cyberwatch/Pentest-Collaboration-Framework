@@ -7,7 +7,7 @@
 
 #struct
 lxml==4.6.3
-pyopenssl==22.0.0
+pyopenssl==22.1.0
 requests==2.26.0
 python-magic==0.4.24
 libmagic==1.0
