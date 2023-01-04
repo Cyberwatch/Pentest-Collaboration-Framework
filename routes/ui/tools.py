@@ -689,6 +689,8 @@ def nessus_page_form(project_id, current_project, current_user):
                         # prepare services
                         issue_port = int(issue.port)
                         issue_is_tcp = int(issue.protocol == 'tcp')
+                        if issue_port == 0:
+                            issue_is_tcp = 1 # fix for traceroute 0/udp nessus plugin
                         issue_port_id = ''
                         for port_db in all_ports:
                             if port_db['port'] == issue_port and \
@@ -756,27 +758,28 @@ def nessus_page_form(project_id, current_project, current_user):
                                             else:
                                                 pass  # not changed
                             if not found:
-                                # create new issue
-                                issue_create_list.append(
-                                    {
-                                        'name': issue_name,
-                                        'description': issue_description,
-                                        'url_path': issue_url_path,
-                                        'cvss': issue_cvss,
-                                        'status': issue_status,
-                                        'cve': issue_cve,
-                                        'cwe': issue_cwe,
-                                        'type': issue_type,
-                                        'fix': issue_fix,
-                                        'param': issue_param,
-                                        'services': {issue_port_id: [issue_hostname_id]},
-                                        # {"nessus_plugin_id": {"value": 71049, "type": "number"}}
-                                        'fields': {'nessus_plugin_id': {'type': 'number', 'value': plugin_id}},
-                                        'technical': '',
-                                        'risks': '',
-                                        'references': '',
-                                        'intruder': ''
-                                    })
+                                if len(issue_create_list) < 25:
+                                    # create new issue
+                                    issue_create_list.append(
+                                        {
+                                            'name': issue_name,
+                                            'description': issue_description,
+                                            'url_path': issue_url_path,
+                                            'cvss': issue_cvss,
+                                            'status': issue_status,
+                                            'cve': issue_cve,
+                                            'cwe': issue_cwe,
+                                            'type': issue_type,
+                                            'fix': issue_fix,
+                                            'param': issue_param,
+                                            'services': {issue_port_id: [issue_hostname_id]},
+                                            # {"nessus_plugin_id": {"value": 71049, "type": "number"}}
+                                            'fields': {'nessus_plugin_id': {'type': 'number', 'value': plugin_id}},
+                                            'technical': '',
+                                            'risks': '',
+                                            'references': '',
+                                            'intruder': ''
+                                        })
 
                 # 6. Update exists issues services
                 db.update_issue_services_multiple(
