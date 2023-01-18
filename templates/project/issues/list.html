@@ -215,7 +215,7 @@
                             issue_elem.appendChild(rule_button);
                             issue_elem.appendChild(join_button);
                             issue_elem.innerHTML = issue_elem.innerHTML + `
-<div class="ui field" style="float: right;z-index: 999;">
+<div class="ui field" style="float: right;">
 	<div class="ui labeled input">
 		<div class="ui label" style="width: 120px;">
 			<i class="exclamation triangle icon"></i>Criticality:
@@ -251,14 +251,12 @@
                             first_row.css({
                                 'top': 0,
                                 'position': "sticky",
-                                'z-index': 900,
                                 'background-color': 'white'
                             });
                             table_header = $('#issues_header');
                             table_header.css({
                                 'top': "66px",
                                 'position': "sticky",
-                                'z-index': 100,
                                 'background-color': 'white'
                             });
 
