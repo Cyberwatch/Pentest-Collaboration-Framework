@@ -1,0 +1,7 @@
+# 8.8.8.8,google.com,mail.google.com
+# 7.7.7.7,test.com
+# 6.6.6.6,demo.com,admin.demo.com
+
+{% for host_ip in hosts -%}
+{{ host_ip }}{% for hostname_id in hosts[host_ip]['hostnames'] %},{{hostnames[hostname_id]['hostname']}}{% endfor %}
+{% endfor %}
