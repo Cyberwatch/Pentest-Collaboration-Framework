@@ -1,0 +1,6 @@
+ip;port;service;comment
+{% for host_ip in hosts %}
+	{% for port_id in hosts[host_ip]['ports'] %}
+{{host_ip}};{{ports[port_id]['port']}};{{ports[port_id]['service']}};{{ports[port_id]['comment']}}
+	{% endfor %}
+{% endfor %}
