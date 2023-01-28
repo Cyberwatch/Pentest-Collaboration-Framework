@@ -9,7 +9,113 @@
             {% include 'project/sidebar.html' %}
         </div>
         <script>
+
+            search_checkboxes = {
+                "host_status_high": "unchecked",
+                "host_status_medium": "unchecked",
+                "host_status_low": "unchecked",
+                "host_status_info": "unchecked",
+                "host_status_check": "unchecked",
+                "host_status_checked": "unchecked",
+                "host_status_noscope": "unchecked",
+                "host_status_recheck": "unchecked",
+                "host_status_firewall": "unchecked",
+                "host_status_offline": "unchecked",
+                "host_status_inwork": "unchecked",
+                "host_status_scope": "unchecked",
+                "host_status_critical": "unchecked",
+                "host_status_slow": "unchecked"
+            }
+
+            function getUrlVars() {
+                var vars = [], hash;
+                var hashes = window.location.href.slice(window.location.href.indexOf('?') + 1).split('&');
+                for (var i = 0; i < hashes.length; i++) {
+                    hash = hashes[i].split('=');
+                    val_name = decodeURIComponent(hash[0]);
+                    val_data = decodeURIComponent(hash[1])
+                    if (typeof vars[val_name] == 'undefined') {
+                        vars.push(val_name);
+                        vars[val_name] = [val_data];
+                    } else {
+                        vars[val_name].push(val_data);
+                    }
+                }
+                return vars;
+            }
+
+
+            function set_url_threats() {
+                url_vars = getUrlVars();
+            }
+
+            function set_default_values() {
+
+                url_vars = getUrlVars();
+
+                param_name = "threats[]";
+
+                if (url_vars[param_name] !== undefined) {
+
+                    values_arr = url_vars[param_name]
+
+                    for (const val of values_arr) {
+
+                        for (const [key, not_used] of Object.entries(search_checkboxes)) {
+
+                            field_name = key.replace('host_status_', '');
+
+                            if (val.startsWith(field_name + ',')) {
+                                val_status = val.replace(field_name + ',', '');
+                                if (val_status !== '') {
+                                    search_checkboxes[name] = val_status;
+                                    obj = $('#' + key)[0].children[0];
+                                    if (val_status === "indeterminate") {
+                                        obj.checked = true;
+                                        obj.indeterminate = true;
+                                        obj.value = field_name + ',indeterminate';
+                                    } else if (val_status === "checked") {
+                                        obj.checked = true;
+                                        obj.indeterminate = false;
+                                        obj.value = field_name + ',checked';
+                                    } else {
+                                        obj.checked = false;
+                                        obj.indeterminate = false;
+                                        search_checkboxes[name] = "unchecked";
+                                        obj.value = field_name + ',unchecked';
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            function change_checkbox(name) {
+                old_val = search_checkboxes[name];
+                short_name = name.replace('host_status_', '');
+                obj = $('#' + name)[0].children[0];
+                if (old_val === "unchecked") {
+                    obj.checked = true;
+                    obj.value = short_name + ",checked";
+                    obj.indeterminate = false;
+                    search_checkboxes[name] = "checked";
+                } else if (old_val === "checked") {
+                    obj.checked = true;
+                    obj.indeterminate = true;
+                    obj.value = short_name + ",indeterminate";
+                    search_checkboxes[name] = "indeterminate";
+                } else {
+                    obj.checked = false;
+                    obj.indeterminate = false;
+                    obj.value = short_name + ",unchecked";
+                    search_checkboxes[name] = "unchecked";
+                }
+            }
+
             $(document).ready(function () {
+                set_default_values();
+
                 $('.message .close')
                     .on('click', function () {
                         $(this)
@@ -22,7 +128,6 @@
                     fullTextSearch: "exact"
                 });
 
-                $('.ui.checkbox').checkbox();
 
                 $('#api_list').dropdown();
 
@@ -76,46 +181,74 @@
 
                 var checked_str = '';
                 if (document.getElementById('high_elem').checked) {
-                    checked_str += '&threats[]=high';
+                    if (document.getElementById('high_elem').indeterminate)
+                        checked_str += '&threats[]=high,indeterminate';
+                    else checked_str += '&threats[]=high,checked';
                 }
                 if (document.getElementById('medium_elem').checked) {
-                    checked_str += '&threats[]=medium';
+                    if (document.getElementById('medium_elem').indeterminate)
+                        checked_str += '&threats[]=medium,indeterminate';
+                    else checked_str += '&threats[]=medium,checked';
                 }
                 if (document.getElementById('low_elem').checked) {
-                    checked_str += '&threats[]=low';
+                    if (document.getElementById('low_elem').indeterminate)
+                        checked_str += '&threats[]=low,indeterminate';
+                    else checked_str += '&threats[]=low,checked';
                 }
                 if (document.getElementById('info_elem').checked) {
-                    checked_str += '&threats[]=info';
+                    if (document.getElementById('info_elem').indeterminate)
+                        checked_str += '&threats[]=info,indeterminate';
+                    else checked_str += '&threats[]=info,checked';
                 }
                 if (document.getElementById('check_elem').checked) {
-                    checked_str += '&threats[]=check';
+                    if (document.getElementById('check_elem').indeterminate)
+                        checked_str += '&threats[]=check,indeterminate';
+                    else checked_str += '&threats[]=check,checked';
                 }
                 if (document.getElementById('checked_elem').checked) {
-                    checked_str += '&threats[]=checked';
+                    if (document.getElementById('checked_elem').indeterminate)
+                        checked_str += '&threats[]=checked,indeterminate';
+                    else checked_str += '&threats[]=checked,checked';
                 }
                 if (document.getElementById('noscope_elem').checked) {
-                    checked_str += '&threats[]=noscope';
+                    if (document.getElementById('noscope_elem').indeterminate)
+                        checked_str += '&threats[]=noscope,indeterminate';
+                    else checked_str += '&threats[]=noscope,checked';
                 }
                 if (document.getElementById('recheck_elem').checked) {
-                    checked_str += '&threats[]=recheck';
+                    if (document.getElementById('recheck_elem').indeterminate)
+                        checked_str += '&threats[]=recheck,indeterminate';
+                    else checked_str += '&threats[]=recheck,checked';
                 }
                 if (document.getElementById('firewall_elem').checked) {
-                    checked_str += '&threats[]=firewall';
+                    if (document.getElementById('firewall_elem').indeterminate)
+                        checked_str += '&threats[]=firewall,indeterminate';
+                    else checked_str += '&threats[]=firewall,checked';
                 }
                 if (document.getElementById('offline_elem').checked) {
-                    checked_str += '&threats[]=offline';
+                    if (document.getElementById('offline_elem').indeterminate)
+                        checked_str += '&threats[]=offline,indeterminate';
+                    else checked_str += '&threats[]=offline,checked';
                 }
                 if (document.getElementById('inwork_elem').checked) {
-                    checked_str += '&threats[]=inwork';
+                    if (document.getElementById('inwork_elem').indeterminate)
+                        checked_str += '&threats[]=inwork,indeterminate';
+                    else checked_str += '&threats[]=inwork,checked';
                 }
                 if (document.getElementById('scope_elem').checked) {
-                    checked_str += '&threats[]=scope';
+                    if (document.getElementById('scope_elem').indeterminate)
+                        checked_str += '&threats[]=scope,indeterminate';
+                    else checked_str += '&threats[]=scope,checked';
                 }
                 if (document.getElementById('critical_elem').checked) {
-                    checked_str += '&threats[]=critical';
+                    if (document.getElementById('critical_elem').indeterminate)
+                        checked_str += '&threats[]=critical,indeterminate';
+                    else checked_str += '&threats[]=critical,checked';
                 }
                 if (document.getElementById('slow_elem').checked) {
-                    checked_str += '&threats[]=slow';
+                    if (document.getElementById('slow_elem').indeterminate)
+                        checked_str += '&threats[]=slow,indeterminate';
+                    else checked_str += '&threats[]=slow,checked';
                 }
 
                 let url = path + '?network=' + network + '&port=' + port + '&ip_hostname=' + ip_hostname + '&service=' + service + '&issue_name=' + issue_name + '&comment=' + comment + checked_str;
@@ -142,7 +275,8 @@
                                 This module can export hosts with your rules.
                             </div>
                             <div class="extra">
-                                <a href="https://gitlab.com/invuls/pentest-projects/pcf/-/wikis/Tools%20usage" class="ui right floated purple button" target="_blank" rel="noopener noreferrer">
+                                <a href="https://gitlab.com/invuls/pentest-projects/pcf/-/wikis/Tools%20usage"
+                                   class="ui right floated purple button" target="_blank" rel="noopener noreferrer">
                                     Wiki
                                     <i class="right chevron icon"></i>
                                 </a>
@@ -154,9 +288,12 @@
                 <div class="ui divider"></div>
                 <div style="width:100%; margin-bottom:70px;">
                     <h2 class="ui header" style="float:left">Export filters</h2>
-                    <button type="button" class="ui button blue" style="float:right" onclick="view_results('../../hosts/');"><i class="eye icon"></i>View results</button>
+                    <button type="button" class="ui button blue" style="float:right"
+                            onclick="view_results('../../hosts/');"><i class="eye icon"></i>View results
+                    </button>
                 </div>
-                <form style="width: 100%; float:left" class="ui form" enctype="multipart/form-data" method="post" action="/project/{{ current_project['id'] }}/tools/exporter/">
+                <form style="width: 100%; float:left" class="ui form" enctype="multipart/form-data" method="post"
+                      action="/project/{{ current_project['id'] }}/tools/exporter/">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <div class="ui grid">
                         <div class="four wide column">
@@ -236,71 +373,80 @@
                         <div class="three wide column"
                              style="height: 140px; overflow: auto; padding-top: 0px; padding-bottom: 0px; margin-top:3px">
                             {% set threats = request.args.getlist('threats[]') %}
-                            <div class="ui checkbox">
-                                <input type="checkbox" id="high_elem" name="threats" value="high"
-                                        {% if 'high' in threats %} checked {% endif %} id="high_elem">
+                            <div class="ui checkbox"  id="host_status_high">
+                                <input readonly onclick="change_checkbox(this.parentElement.id)" type="checkbox" id="high_elem" name="threats" value="high"
+                                        {% if 'high,checked' in threats %} checked {% endif %} id="high_elem">
                                 <label><i class="warning circle red icon"></i>High</label>
                             </div>
                             <br/>
-                            <div class="ui checkbox">
-                                <input type="checkbox" name="threats" value="medium" {% if 'medium' in threats %}
+                            <div class="ui checkbox"  id="host_status_medium">
+                                <input readonly onclick="change_checkbox(this.parentElement.id)" type="checkbox" name="threats" value="medium" {% if 'medium,checked' in threats %}
                                        checked {% endif %} id="medium_elem">
                                 <label><i class="warning circle yellow icon"></i>Medium</label>
                             </div>
                             <br/>
-                            <div class="ui checkbox">
-                                <input type="checkbox" name="threats" value="low" {% if 'low' in threats %}
+                            <div class="ui checkbox" id="host_status_low">
+                                <input readonly onclick="change_checkbox(this.parentElement.id)" type="checkbox" name="threats" value="low" {% if 'low,checked' in threats %}
                                        checked {% endif %} id="low_elem">
                                 <label><i class="warning circle green icon"></i>Low</label>
                             </div>
                             <br/>
-                            <div class="ui checkbox">
-                                <input type="checkbox" name="threats" value="info" {% if 'info' in threats %}
+                            <div class="ui checkbox" id="host_status_info">
+                                <input readonly onclick="change_checkbox(this.parentElement.id)" type="checkbox" name="threats" value="info" {% if 'info,checked' in threats %}
                                        checked {% endif %} id="info_elem">
                                 <label><i class="warning circle blue icon"></i>Info</label>
                             </div>
                             <br/>
-                            <div class="ui checkbox">
-                                <input type="checkbox" name="threats" value="check" {% if 'check' in threats %}
+                            <div class="ui checkbox" id="host_status_check">
+                                <input readonly onclick="change_checkbox(this.parentElement.id)" type="checkbox" name="threats" value="check" {% if 'check,checked' in threats %}
                                        checked {% endif %} id="check_elem">
                                 <label><i class="help circle purple icon"></i>Need to check</label>
                             </div>
                             <br/>
-                            <div class="ui checkbox">
-                                <input type="checkbox" name="threats" value="checked" {% if 'checked' in threats %}checked {% endif %} id="checked_elem">
+                            <div class="ui checkbox" id="host_status_checked">
+                                <input readonly onclick="change_checkbox(this.parentElement.id)" type="checkbox" name="threats" value="checked"
+                                       {% if 'checked,checked' in threats %}checked {% endif %} id="checked_elem">
                                 <label><i class="flag red icon"></i>Checked</label>
                             </div>
                             </br>
-                            <div class="ui checkbox" style="width: 100%">
-                                <input type="checkbox" name="threats" value="noscope" {% if 'noscope' in threats %} checked {% endif %} id="noscope_elem">
+                            <div class="ui checkbox" style="width: 100%" id="host_status_noscope">
+                                <input readonly onclick="change_checkbox(this.parentElement.id)" type="checkbox" name="threats" value="noscope" {% if 'noscope,checked' in threats %}
+                                       checked {% endif %} id="noscope_elem">
                                 <label><i class="circle minus black icon"></i>Out of scope</label>
                             </div>
-                            <div class="ui checkbox" style="width: 100%">
-                                <input type="checkbox" name="threats" value="recheck" {% if 'recheck' in threats %} checked {% endif %} id="recheck_elem">
+                            <div class="ui checkbox" style="width: 100%" id="host_status_recheck">
+                                <input readonly onclick="change_checkbox(this.parentElement.id)" type="checkbox" name="threats" value="recheck" {% if 'recheck,checked' in threats %}
+                                       checked {% endif %} id="recheck_elem">
                                 <label><i class="clipboard list teal icon"></i>Need to recheck</label>
                             </div>
-                            <div class="ui checkbox" style="width: 100%">
-                                <input type="checkbox" name="threats" value="firewall" {% if 'firewall' in threats %} checked {% endif %} id="firewall_elem">
+                            <div class="ui checkbox" style="width: 100%" id="host_status_firewall">
+                                <input readonly onclick="change_checkbox(this.parentElement.id)" type="checkbox" name="threats" value="firewall" {% if 'firewall,checked' in threats %}
+                                       checked {% endif %} id="firewall_elem">
                                 <label><i class="shield blue icon"></i>Firewall enabled</label>
                             </div>
-                            <div class="ui checkbox" style="width: 100%">
-                                <input type="checkbox" name="threats" value="offline" {% if 'offline' in threats %} checked {% endif %} id="offline_elem">
+                            <div class="ui checkbox" style="width: 100%" id="host_status_offline">
+                                <input readonly onclick="change_checkbox(this.parentElement.id)" type="checkbox" name="threats" value="offline" {% if 'offline,checked' in threats %}
+                                       checked {% endif %} id="offline_elem">
                                 <label><i class="power off circle red icon"></i>Offline</label>
                             </div>
-                            <div class="ui checkbox" style="width: 100%">
-                                <input type="checkbox" name="threats" value="inwork" {% if 'inwork' in threats %} checked {% endif %} id="inwork_elem">
+                            <div class="ui checkbox" style="width: 100%" id="host_status_inwork">
+                                <input readonly onclick="change_checkbox(this.parentElement.id)" type="checkbox" name="threats" value="inwork" {% if 'inwork,checked' in threats %}
+                                       checked {% endif %} id="inwork_elem">
                                 <label><i class="sync alternate circle blue icon"></i>In work...</label>
                             </div>
-                            <div class="ui checkbox" style="width: 100%">
-                                <input type="checkbox" name="threats" value="scope" {% if 'scope' in threats %} checked {% endif %} id="scope_elem">
+                            <div class="ui checkbox" style="width: 100%" id="host_status_scope">
+                                <input readonly onclick="change_checkbox(this.parentElement.id)" type="checkbox" name="threats" value="scope" {% if 'scope,checked' in threats %}
+                                       checked {% endif %} id="scope_elem">
                                 <label><i class="crosshairs green icon"></i>In scope</label>
                             </div>
-                            <div class="ui checkbox" style="width: 100%">
-                                <input type="checkbox" name="threats" value="critical" {% if 'critical' in threats %} checked {% endif %} id="critical_elem">
+                            <div class="ui checkbox" style="width: 100%" id="host_status_critical">
+                                <input readonly onclick="change_checkbox(this.parentElement.id)" type="checkbox" name="threats" value="critical" {% if 'critical' in threats %}
+                                       checked {% endif %} id="critical_elem">
                                 <label><i class="bomb orange icon"></i>Critical server</label>
                             </div>
-                            <div class="ui checkbox" style="width: 100%">
-                                <input type="checkbox" name="threats" value="slow" {% if 'slow' in threats %} checked {% endif %} id="slow_elem">
+                            <div class="ui checkbox" style="width: 100%" id="host_status_slow">
+                                <input readonly onclick="change_checkbox(this.parentElement.id)" type="checkbox" name="threats" value="slow" {% if 'slow' in threats %}
+                                       checked {% endif %} id="slow_elem">
                                 <label><i class="tachometer alternate pink icon"></i>Slow connection</label>
                             </div>
                         </div>
@@ -320,7 +466,8 @@
                                         <input type="text" value="export" name="filename" placeholder="export">
                                     </div>
                                     <div class="ui field">
-                                        <select class="ui dropdown selection search" id="extention_list" name="filetype">
+                                        <select class="ui dropdown selection search" id="extention_list"
+                                                name="filetype">
                                             <option value="txt" selected>.txt</option>
                                             <option value="csv">.csv</option>
                                             <option value="xml">.xml</option>
@@ -353,7 +500,9 @@
                                     </ul>
                                 </div>
                             {% endif %}
-                            <button style="margin-top:20px" type="submit" class="ui button orange"><i class="download icon"></i>Export</button>
+                            <button style="margin-top:20px" type="submit" class="ui button orange"><i
+                                    class="download icon"></i>Export
+                            </button>
                         </div>
                         <div class="ui field">
                             <div class="ui field">

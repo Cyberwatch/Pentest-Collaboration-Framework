@@ -2364,8 +2364,17 @@ class Database:
             threats_set = set(threats)
             threats_result = []
             for host in all_hosts:
+                add_host = True
                 host_theats = set(json.loads(host['threats']))
-                if host_theats & threats_set:
+                for threat_filter in threats_set:
+                    if ',' in threat_filter:
+                        threat_name = threat_filter.split(',')[0]
+                        threat_status = threat_filter.split(',')[1]
+                        if threat_status == 'checked' and threat_name not in host_theats:
+                            add_host = False
+                        elif threat_status == 'indeterminate' and threat_name in host_theats:
+                            add_host = False
+                if add_host:
                     threats_result.append(host)
 
         # port_service
