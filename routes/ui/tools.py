@@ -1248,7 +1248,6 @@ def acunetix_page_form(project_id, current_project, current_user):
                                             risks=impact
                                             )
 
-
     return render_template('project/tools/import/acunetix.html',
                            current_project=current_project,
                            tab_name='Acunetix',
@@ -6233,4 +6232,130 @@ def scanvus_page_form(project_id, current_project, current_user):
     return render_template('project/tools/import/scanvus.html',
                            current_project=current_project,
                            tab_name='Scanvus',
+                           errors=errors)
+
+
+@routes.route('/project/<uuid:project_id>/tools/aiodnsbrute/', methods=['GET'])
+@requires_authorization
+@check_session
+@check_project_access
+@send_log_data
+def aiodnsbrute_page(project_id, current_project, current_user):
+    return render_template('project/tools/import/aiodnsbrute.html',
+                           current_project=current_project,
+                           tab_name='aiodnsbrute')
+
+
+@routes.route('/project/<uuid:project_id>/tools/aiodnsbrute/', methods=['POST'])
+@requires_authorization
+@check_session
+@check_project_access
+@send_log_data
+def aiodnsbrute_page_form(project_id, current_project, current_user):
+    form = aiodnsbruteForm()
+    form.validate()
+    errors = []
+    if form.errors:
+        for field in form.errors:
+            for error in form.errors[field]:
+                errors.append(error)
+
+    if not errors:
+
+
+        # json files
+        for file in form.json_files.data:
+            if file.filename:
+                json_report_data = file.read().decode('charmap')
+                scan_result = json.loads(json_report_data)
+                for hostname_row in scan_result:
+                    hostname = hostname_row['domain']
+                    ip_list = hostname_row['ip'] if 'ip' in hostname_row else []
+                    cname = hostname_row['cname'] if 'cname' in hostname_row else ''
+                    aliases = hostname_row['aliases'] if 'aliases' in hostname_row else []
+
+                    # check ip addresses
+                    ip_list = list(set(ip_list))
+                    ip_list_tmp = list(filter(None, ip_list))
+                    ip_list = []
+                    for ip_str in ip_list_tmp:
+                        try:
+                            ip_obj = ipaddress.ip_address(ip_str)
+                            if not(ip_obj.version == 6 and form.ignore_ipv6.data == 1):
+                                ip_list.append(ip_str)
+                        except:
+                            pass
+
+                    # check hostnames
+
+                    hostnames_list = [hostname, cname] + aliases
+                    hostnames_list = list(set(hostnames_list))
+                    hostnames_list = list(filter(None, hostnames_list))
+
+                    if ip_list and hostnames_list:
+                        for ip_str in ip_list:
+                            host_id = db.select_project_host_by_ip(current_project['id'], ip_str)
+                            if host_id:
+                                host_id = host_id[0]['id']
+                            else:
+                                host_id = db.insert_host(current_project['id'],
+                                               ip_str, current_user['id'],
+                                               form.hosts_description.data)
+
+                            hostnames_existed = [x['hostname'] for x in db.select_ip_hostnames(host_id)]
+
+                            for hostname_new in hostnames_list:
+                                if hostname_new not in hostnames_existed:
+                                    hostname_id = db.insert_hostname(host_id,hostname_new, form.hostnames_description.data,current_user['id'])
+
+
+        # csv load
+        for file in form.csv_files.data:
+            if file.filename:
+                scan_result = csv.DictReader(codecs.iterdecode(file, 'charmap'), delimiter=',')
+
+                for hostname_row in scan_result:
+
+                    hostname = hostname_row['Hostname']
+                    cname = hostname_row['CNAME']
+                    host_ip = hostname_row['IPs']
+                    aliases = hostname_row['Aliases']
+
+                    # check ip addresses
+                    try:
+                        ip_obj = ipaddress.ip_address(host_ip)
+                        if ip_obj.version == 6 and form.ignore_ipv6.data == 1:
+                            host_ip = ''
+                    except:
+                        host_ip = ''
+                        pass
+
+                    # check hostnames
+
+                    hostnames_list = [hostname, cname, aliases]
+                    hostnames_list = list(set(hostnames_list))
+                    hostnames_list = list(filter(None, hostnames_list))
+
+                    if host_ip and hostnames_list:
+                        host_id = db.select_project_host_by_ip(current_project['id'], host_ip)
+                        if host_id:
+                            host_id = host_id[0]['id']
+                        else:
+                            host_id = db.insert_host(current_project['id'],
+                                                     host_ip, current_user['id'],
+                                                     form.hosts_description.data)
+
+                        hostnames_existed = [x['hostname'] for x in db.select_ip_hostnames(host_id)]
+
+                        for hostname_new in hostnames_list:
+                            if hostname_new not in hostnames_existed:
+                                hostname_id = db.insert_hostname(host_id, hostname_new,
+                                                                 form.hostnames_description.data,
+                                                                 current_user['id'])
+
+
+
+    return render_template('project/tools/import/aiodnsbrute.html',
+                           current_project=current_project,
+                           tab_name='aiodnsbrute',
                            errors=errors)
