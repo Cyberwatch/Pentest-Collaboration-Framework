@@ -2112,10 +2112,8 @@ def shodan_page_form(project_id, current_project, current_user):
                                                                    net_mask,
                                                                    asn,
                                                                    full_network_description,
-                                                                   current_project[
-                                                                       'id'],
-                                                                   current_user[
-                                                                       'id'],
+                                                                   current_project['id'],
+                                                                   current_user['id'],
                                                                    ip_version == 6)
                             else:
                                 network_id = network_id[0]['id']
@@ -2188,18 +2186,16 @@ def shodan_page_form(project_id, current_project, current_user):
                     if "vulns" in port:
                         vulns = port['vulns']
                         for cve in vulns:
-                            cvss = vulns[cve]['cvss']
-                            summary = vulns[cve]['summary']
+                            cvss = float(vulns[cve]['cvss']) if 'cvss' in vulns[cve] and vulns[cve]['cvss'] else 0
+                            summary = str(vulns[cve]['summary']) if 'summary' in vulns[cve] else ''
                             services = {port_id: ["0"]}
 
                             issue_id = db.insert_new_issue(cve, summary, '',
                                                            cvss,
-                                                           current_user[
-                                                               'id'],
+                                                           current_user['id'],
                                                            services,
                                                            'need to check',
-                                                           current_project[
-                                                               'id'],
+                                                           current_project['id'],
                                                            cve=cve)
 
             except shodan.exception.APIError as e:
@@ -2333,18 +2329,16 @@ def shodan_page_form(project_id, current_project, current_user):
                         if "vulns" in port:
                             vulns = port['vulns']
                             for cve in vulns:
-                                cvss = vulns[cve]['cvss']
-                                summary = vulns[cve]['summary']
+                                cvss = float(vulns[cve]['cvss']) if 'cvss' in vulns[cve] and vulns[cve]['cvss'] else 0
+                                summary = str(vulns[cve]['summary']) if 'summary' in vulns[cve] else ''
                                 services = {port_id: ["0"]}
 
                                 issue_id = db.insert_new_issue(cve, summary, '',
                                                                cvss,
-                                                               current_user[
-                                                                   'id'],
+                                                               current_user['id'],
                                                                services,
                                                                'need to check',
-                                                               current_project[
-                                                                   'id'],
+                                                               current_project['id'],
                                                                cve=cve)
                 except shodan.exception.APIError as e:
                     errors.append(e)
@@ -2500,20 +2494,18 @@ def shodan_page_form(project_id, current_project, current_user):
                                 if "vulns" in shodan_json:
                                     vulns = shodan_json['vulns']
                                     for cve in vulns:
-                                        cvss = vulns[cve]['cvss']
-                                        summary = vulns[cve]['summary']
+                                        cvss = float(vulns[cve]['cvss']) if 'cvss' in vulns[cve] and vulns[cve]['cvss'] else 0
+                                        summary = str(vulns[cve]['summary']) if 'summary' in vulns[cve] else ''
                                         services = {port_id: ["0"]}
 
                                         issue_id = db.insert_new_issue(cve,
                                                                        summary,
                                                                        '',
                                                                        cvss,
-                                                                       current_user[
-                                                                           'id'],
+                                                                       current_user['id'],
                                                                        services,
                                                                        'need to check',
-                                                                       current_project[
-                                                                           'id'],
+                                                                       current_project['id'],
                                                                        cve=cve)
                             except shodan.exception.APIError as e:
                                 pass  # a lot of errors
