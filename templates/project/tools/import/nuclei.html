@@ -18,6 +18,7 @@
                         ;
                     });
                 $('#rules_list').dropdown();
+                $('#severity_dropdown').dropdown({});
             });
 
             function add_hostname_field() {
@@ -61,7 +62,8 @@
                                 Fast and customizable vulnerability scanner based on simple YAML based DSL.
                             </div>
                             <div class="extra">
-                                <a href="https://github.com/projectdiscovery/nuclei" class="ui right floated purple button" target="_blank" rel="noopener noreferrer">
+                                <a href="https://github.com/projectdiscovery/nuclei"
+                                   class="ui right floated purple button" target="_blank" rel="noopener noreferrer">
                                     Official site
                                     <i class="right chevron icon"></i>
                                 </a>
@@ -71,7 +73,8 @@
                 </div>
                 <div class="ui divider"></div>
                 <h2 class="ui header">Upload reports</h2>
-                <form class="ui form" enctype="multipart/form-data" method="post" action="/project/{{ current_project['id'] }}/tools/nuclei/">
+                <form class="ui form" enctype="multipart/form-data" method="post"
+                      action="/project/{{ current_project['id'] }}/tools/nuclei/">
                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                     <div class="two fields">
                         <div class="ui field">
@@ -81,17 +84,34 @@
                             </div>
                             <div class="ui field">
                                 <label>Hosts description:</label>
-                                <input type="text" name="hosts_description" placeholder="Added from Nuclei scan" value="Added from Nuclei scan">
+                                <input type="text" name="hosts_description" placeholder="Added from Nuclei scan"
+                                       value="Added from Nuclei scan">
                             </div>
                             <div class="ui field">
                                 <label>Hostnames description:</label>
-                                <input type="text" name="hostnames_description" placeholder="Added from Nuclei scan" value="Added from Nuclei scan">
+                                <input type="text" name="hostnames_description" placeholder="Added from Nuclei scan"
+                                       value="Added from Nuclei scan">
                             </div>
                             <div class="ui field">
                                 <label>Ports description:</label>
-                                <input type="text" name="ports_description" placeholder="Added from Nuclei scan" value="Added from Nuclei scan">
+                                <input type="text" name="ports_description" placeholder="Added from Nuclei scan"
+                                       value="Added from Nuclei scan">
                             </div>
-                            <button type="submit" class="ui button blue" style="margin-top:20px;"><i class="plus icon"></i>Submit</button>
+                            <div class="ui field">
+                                <label>Severity:</label>
+                                <select name="severity" id="severity_dropdown" multiple="" class="ui fluid dropdown">
+                                    <option value="">Severity</option>
+                                    <option value="critical" selected>Critical</option>
+                                    <option value="high" selected>High</option>
+                                    <option value="medium" selected>Medium</option>
+                                    <option value="low" selected>Low</option>
+                                    <option value="info" selected>Info</option>
+                                    <option value="unknown" selected>Unknown</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="ui button blue" style="margin-top:20px;"><i
+                                    class="plus icon"></i>Submit
+                            </button>
                         </div>
                         <div class="ui field">
                             <div class="ui field" style="margin-top: 15px;">
@@ -107,7 +127,9 @@
                             </div>
                             <div id="hosts_list">
                             </div>
-                            <button type="button" class="ui button green" style="margin-top: 15px;" onclick="add_hostname_field();"><i class="plus icon"></i>Add</button>
+                            <button type="button" class="ui button green" style="margin-top: 15px;"
+                                    onclick="add_hostname_field();"><i class="plus icon"></i>Add
+                            </button>
                         </div>
                     </div>
                 </form>
