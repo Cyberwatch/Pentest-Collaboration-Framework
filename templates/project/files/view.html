@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 {% include 'header.html' %}
+
 <body>
 <div id="segment_id">
     {% include 'menu.html' %}
@@ -15,13 +16,13 @@
 
 
     </script>
-    <div class="ui grid">
+    <div class="ui grid" style="height: calc(100% - 50px)">
         <div class="ui column" style="width: 75px; padding-top: 50px;">
             {% include 'project/sidebar.html' %}
         </div>
-        <div class="ui column" style="width: calc(100% - 75px)">
+        <div class="ui column" style="width: calc(100% - 75px); height: 100%">
             <h1 class="ui dividing header">{{ (current_file['type']) }}: {{ (current_file['filename']) }}</h1>
-            <div class="ui container" style="width: 100%; height: 465px">
+            <div class="ui container" style="width: 100%; height: calc(100% - 50px);">
                 {% if current_file['type'] == 'text' %}
                     <pre style="height:490px">
                         {% if current_file['storage'] == 'filesystem' %}
@@ -32,6 +33,31 @@
                     </pre>
                 {% elif current_file['type'] == 'image' %}
                         <img style="max-height: 465px; max-width: 100%" src="/static/files/code/{{ current_file['id'] }}">
+                {% elif current_file['type'] == 'document' %}
+
+                        {% if current_file['filename'].lower().endswith('.pdf') %}
+                            <object class="pdf" data="/static/files/code/{{ current_file['id'] }}" width="100%" style="height: calc( 100% - 50px ); overflow: auto;">
+                            </object>
+                        {% else %}
+                            {% if external_js %}
+                                <script src="https://unpkg.com/jszip/dist/jszip.min.js"></script>
+                                <script src="https://cdn.jsdelivr.net/npm/docx-preview@0.3.1/dist/docx-preview.min.js"></script>
+                            {% else %}
+                                <script src="/static/js/jszip.min.js"></script>
+                                <script src="/static/js/docx-preview.min.js"></script>
+                            {% endif %}
+
+                            <script>
+
+                                fetch('/static/files/code/{{ current_file['id'] }}')
+                                  .then(res => res.blob()) // Gets the response and returns it as a blob
+                                  .then(docData => {
+                                    docx.renderAsync(docData, document.getElementById("word_container"))
+                                    .then(x => console.log("docx: finished"));
+                                });
+                            </script>
+                            <div id="word_container" style="width: 100%; height: calc( 100% - 50px ); overflow: auto;"></div>
+                        {% endif %}
                 {% endif %}
                 <form class="ui form" action="/project/{{ current_project['id'] }}/files/{{ current_file['id'] }}/"
                       method="post"

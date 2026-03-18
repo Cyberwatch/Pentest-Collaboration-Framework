@@ -1,6 +1,2 @@
 ip;port;service;comment
-{% for host_ip in hosts %}
-	{%- for port_id in hosts[host_ip]['ports'] -%}
-{{host_ip}};{{ports[port_id]['port']}};{{ports[port_id]['service']}};{{ports[port_id]['comment']}}
-	{%- endfor %}
-{% endfor %}
+{% for host_ip in hosts %}{% for port_id in hosts[host_ip]['ports'] %}{% if ports[port_id]['port'] != 0 %}{{host_ip}};{{ports[port_id]['port']}};{{functions["csv_escape"](ports[port_id]['service'])}};{{functions["csv_escape"](ports[port_id]['comment']) +"\n"}}{% endif %}{% endfor %}{% endfor %}

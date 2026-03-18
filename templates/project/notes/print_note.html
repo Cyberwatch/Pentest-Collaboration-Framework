@@ -53,7 +53,7 @@
     {% endif %}
 </head>
 <body>
-
+{% if current_note['type'] == 'html' %}
 <textarea type="hidden" id="textarea" style="display: none">{{ current_note['text'] }}</textarea>
 <div style="float: left; width: 100%;">
     <div id="editor" style="width: 100%; overflow: auto;"></div>
@@ -84,6 +84,7 @@
         border: none;
     }
 </style>
+{% endif %}
 
 </body>
 </html>

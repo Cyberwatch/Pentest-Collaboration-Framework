@@ -30,7 +30,7 @@ class nmap_plugin():
         info_str = ''
 
         if 'os' in self.script_obj['elements'] and self.script_obj['elements']['os'] and \
-                self.script_obj['elements']['fqdn'] != 'nil':
+                self.script_obj['elements']['os'] != 'nil':
             info_object['os'] = self.script_obj['elements']['os']
 
         if 'fqdn' in self.script_obj['elements'] and self.script_obj['elements']['fqdn'] and \
