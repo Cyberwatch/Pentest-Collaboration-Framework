@@ -232,17 +232,20 @@ def requires_authorization(f):
 
 
 @app.errorhandler(404)
+@requires_authorization
 def page_not_found(e):
     # note that we set the 404 status explicitly
     return render_template('404.html'), 404
 
 
 @app.errorhandler(405)
+@requires_authorization
 def page_not_found(e):
     return render_template('405.html'), 405
 
 
 @app.errorhandler(500)
+@requires_authorization
 def page_exception(e):
     return render_template('500.html'), 500
 

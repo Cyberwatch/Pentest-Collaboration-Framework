@@ -597,3 +597,41 @@ text, .text {
 .ui.divided.grid:not([class*="vertically divided"])>.column:not(.row), .ui.divided.grid:not([class*="vertically divided"])>.row>.column {
     box-shadow: -1px 0 0 0 rgb(255 255 255 / 15%)
 }
+
+
+/* Markdown editor */
+
+.EasyMDEContainer .CodeMirror {
+    color: #ccc !important;
+    border-color: #333 !important;
+    background-color: #000 !important;
+}
+.EasyMDEContainer .cm-s-easymde .CodeMirror-cursor {
+    border-color: #ccc !important;
+}
+
+.EasyMDEContainer .editor-toolbar > * {
+    color: #ccc !important;
+}
+
+.EasyMDEContainer .editor-toolbar > .active, .editor-toolbar > button:hover, .editor-preview pre, .cm-s-easymde .cm-comment {
+    background-color: #444 !important;
+}
+
+.EasyMDEContainer .CodeMirror-fullscreen {
+    background: #000 !important;
+}
+
+.editor-toolbar {
+    border-top: 1px solid #333 !important;
+    border-left: 1px solid #333 !important;
+    border-right: 1px solid #333 !important;
+}
+
+.editor-toolbar.fullscreen {
+    background: #000 !important;
+}
+
+.editor-preview {
+    background: #000 !important;
+}

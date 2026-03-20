@@ -11,6 +11,7 @@
         <div class="ui column" style="width: calc(100% - 75px)">
             <div>
                 {% set ports = db.select_project_ports_grouped(current_project['id']) %}
+                {% set hosts_ips_dict = db.select_project_host_ip_dict(current_project['id']) %}
                 <h1 class="ui header" style="float: left">Services: {{ len(ports) }}</h1>
                 <a class="ui button blue" style="float:right" href="new_service"><i
                         class="plus icon"></i>Add</a>
@@ -137,7 +138,7 @@
                                         {% if len(current_port['host_id']) > 5 %}
                                             {% for host_id in current_port['host_id'][:5] %}
                                                 <li>
-                                                    <a href="/project/{{ current_project['id'] }}/host/{{ host_id }}/">{{ (db.select_project_host(current_project['id'], host_id)[0]['ip']) }}</a>
+                                                    <a href="/project/{{ current_project['id'] }}/host/{{ host_id }}/">{{ hosts_ips_dict[host_id] }}</a>
                                                 </li>
                                             {% endfor %}
                                             . . .<br/>
@@ -145,13 +146,8 @@
                                                 hosts at all</a>
                                         {% else %}
                                             {% for host_id in current_port['host_id'] %}
-                                                {% set host = db.select_project_host(current_project['id'], host_id) %}
-                                                <!-- TODO: delete -->
-                                                {% if not host %}
-                                                    {% set to_del = db.delete_port_safe(current_port['id']) %}
-                                                {% endif %}
                                                 <li>
-                                                    <a href="/project/{{ current_project['id'] }}/host/{{ host_id }}/">{{ (db.select_project_host(current_project['id'], host_id)[0]['ip']) }}</a>
+                                                    <a href="/project/{{ current_project['id'] }}/host/{{ host_id }}/">{{ hosts_ips_dict[host_id] }}</a>
                                                 </li>
                                             {% endfor %}
                                         {% endif %}

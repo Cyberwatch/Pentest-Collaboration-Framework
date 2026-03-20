@@ -68,7 +68,7 @@ class nmap_plugin():
         """
         [
             {
-                "login": "",
+                "login": "",   ##### if it is empty -> will become _BLANC automatically
                 "cleartext": "",
                 "hash": "",
                 "description": "",
@@ -86,6 +86,7 @@ class nmap_plugin():
                 "description": "",
                 "source": ""
             }
+            credentials_arr.append(creds_obj)
 
         return credentials_arr
 

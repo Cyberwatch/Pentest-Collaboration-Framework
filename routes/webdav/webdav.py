@@ -199,6 +199,8 @@ class CategoryTypeCollection(DAVCollection):
             filetype = 'image'
         elif filename.lower().split('.')[-1] in ['txt', 'sql', 'html', 'py']:
             filetype = 'text'
+        elif filename.lower().split('.')[-1] in ['doc', 'docx', 'pdf', 'docm']:
+            filetype = 'document'
 
         file_id = str(gen_uuid())
         config_pcf = config_dict()
@@ -575,6 +577,11 @@ class VirtualResFile(VirtualNonCollection):
             return "image/png"
         elif self.current_file['type'] == 'text':
             return "text/plain"
+        elif self.current_file['type'] == 'document':
+            if self.current_file['filename'].lower().endswith('.pdf'):
+                return "application/pdf"
+            elif self.current_file['filename'].lower().split('.')[-1].startswith('doc'):
+                return "application/msword"
         else:
             return "application/octet-stream"
 
