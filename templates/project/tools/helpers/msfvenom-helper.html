@@ -123,7 +123,7 @@
                     if (payloads_list[i]['checked']) {
                         check_str = 'checked';
                     }
-                    if (s.includes(search_field.toLowerCase()) || search_field === '') {
+                    if (s.toLowerCase().includes(search_field.toLowerCase()) || search_field === '') {
 
                         inner = `<div class="ui item checkbox" data-value="item1" id="payloads_row">
                                 <input type="checkbox" value="${payloads_list[i]['payload']}" ${check_str} onchange="switch_payloads('${payloads_list[i]["payload"]}');">
@@ -161,7 +161,7 @@
                     if (encoders_list[i]['checked']) {
                         check_str = 'checked';
                     }
-                    if (s.includes(search_field.toLowerCase()) || search_field === '') {
+                    if (s.toLowerCase().includes(search_field.toLowerCase()) || search_field === '') {
 
                         inner = `<div class="ui item checkbox" data-value="item1" id="encoders_row">
                                 <input type="checkbox" value="${encoders_list[i]['encoder']}" ${check_str} onchange="switch_encoders(this,'${encoders_list[i]["encoder"]}');">

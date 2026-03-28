@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+{% include 'header.html' %}
+<body>
+<div id="segment_id">
+    {% include 'menu.html' %}
+    <div class="ui grid">
+        <div class="ui column" style="width: 75px; padding-top: 50px;">
+            {% include 'project/sidebar.html' %}
+        </div>
+        <script>
+            $(document).ready(function () {
+                $('.message .close')
+                    .on('click', function () {
+                        $(this)
+                            .closest('.message')
+                            .transition('fade')
+                        ;
+                    });
+            });
+        </script>
+        <div class="ui column" style="width: calc(100% - 75px)">
+            <!-- Tool description -->
+            <h1 class="ui dividing header">{{ tool_name_joined }}</h1>
+            <div class="ui container" style="width: 100%">
+                {% for tool_description_object in tools_description %}
+                <!-- Long description -->
+                <div class="ui relaxed divided items">
+                    <div class="item">
+                        <div class="ui small image">
+                            {% if external_img %}
+                                <img src="{{ tool_description_object["Icon URL"] }}">
+                            {% else %}
+                                <img src="data:{{ tool_description_object["image_content_type"] }};base64, {{ tool_description_object["image_b64"] }}">
+                            {% endif %}
+                        </div>
+                        <div class="content">
+                            <a class="header">{{ tool_description_object["Official name"] }}</a>
+                            <div class="meta">
+                                <a>Import tool</a>
+                            </div>
+                            <div class="description">
+                                {{ tool_description_object["Description"] if "Description" in tool_description_object else "" | safe}}
+                            </div>
+                            <div class="extra">
+                                <a href="{{ tool_description_object["URL"] if "URL" in tool_description_object }}" class="ui right floated purple button" target="_blank" rel="noopener noreferrer">
+                                    Official site
+                                    <i class="right chevron icon"></i>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="ui divider"></div>
+                {% endfor %}
+                <h2 class="ui header">Upload reports</h2>
+                <!-- Start form data -->
+                <form class="ui form" enctype="multipart/form-data" method="post" action="/project/{{ current_project['id'] }}/tools/{{ route_name }}/">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                    <!-- Import data start -->
+                    {% for row_obj in  display_table %}
+                         <div class="{{ rows_name }} fields">
+                         {% for html_str in row_obj %}
+                             <div class="ui field">
+                                {{ html_str | safe}}
+                             </div>
+                         {% endfor %}
+                         </div>
+                    {% endfor %}
+                    <!-- Import data stop -->
+                    <button type="submit" class="ui button blue" style="margin-top:20px;"><i class="plus icon"></i>Submit</button>
+                </form>
+                {% if errors is defined and errors %}
+                    <div class="ui error message visible">
+                        <i class="close icon"></i>
+                        <div class="header">
+                            There were some errors with host
+                        </div>
+                        <ul class="list">
+                            {% for error in errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% elif errors is defined and not errors %}
+                    <div class="ui success message visible">
+                        <i class="close icon"></i>
+                        <div class="header">
+                            Successfully uploaded!
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% include 'footer.html' %}
+    </div>
+</div>
+</body>
+</html>
